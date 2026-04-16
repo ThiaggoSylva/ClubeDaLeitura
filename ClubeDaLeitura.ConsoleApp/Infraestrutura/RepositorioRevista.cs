@@ -9,6 +9,7 @@ public class RepositorioRevista
 
     public void Cadastrar(Revista novaRevista)
     {
+        
         for (int i = 0; i < revistas.Length; i++)
         {
             if (revistas[i] == null)
@@ -17,6 +18,7 @@ public class RepositorioRevista
                 break;
             }
         }
+        
     }
 
     public bool Editar(string idSelecionado, Revista novaRevista)
@@ -76,4 +78,24 @@ public class RepositorioRevista
     {
         return revistas;
     }
+
+    public bool ExisteRevistaComMesmoTituloEdicao(string titulo, int numeroEdicao, string? idIgnorado = null)
+{
+    for (int i = 0; i < revistas.Length; i++)
+    {
+        Revista? revista = revistas[i];
+
+        if (revista == null)
+            continue;
+
+        bool mesmoTitulo = revista.Titulo.Trim().ToUpper() == titulo.Trim().ToUpper();
+        bool mesmaEdicao = revista.NumeroEdicao == numeroEdicao;
+        bool mesmoId = revista.Id == idIgnorado;
+
+        if (mesmoTitulo && mesmaEdicao && !mesmoId)
+            return true;
+    }
+
+    return false;
+}
 }
