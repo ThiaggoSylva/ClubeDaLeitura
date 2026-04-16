@@ -2,13 +2,11 @@ using System.Security.Cryptography;
 
 public class Caixa
 {
-    public string Id { get; set; } = string.Empty; // propriedade
-    public string Etiqueta { get; set; } = string.Empty; // propriedade
-    public string Cor { get; set; } = string.Empty; // propriedade
-    public int DiasDeEmprestimo { get; set; } = 7;  // propriedade
+    public string Id { get; set; } = string.Empty; 
+    public string Etiqueta { get; set; } = string.Empty; 
+    public string Cor { get; set; } = string.Empty; 
+    public int DiasDeEmprestimo { get; set; } = 7;  
 
-    // construtor de classe
-    // toda instância que for criada PRECISA dessas informações
     public Caixa(string etiqueta, string cor, int diasDeEmprestimo)
     {
         Id = Convert
@@ -40,7 +38,7 @@ public class Caixa
             erros += "O campo \"Dias de Empréstimo\" deve conter um valor maior que 0;";
         }
 
-        return erros.Split(';', StringSplitOptions.RemoveEmptyEntries); // separar
+        return erros.Split(';', StringSplitOptions.RemoveEmptyEntries); 
     }
 
     public void AtualizarRegistro(Caixa caixaAtualizada)
