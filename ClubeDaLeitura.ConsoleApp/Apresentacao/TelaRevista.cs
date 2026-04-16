@@ -30,7 +30,7 @@ public class TelaRevista
         Console.Write("> ");
 
         string? opcaoMenu = Console.ReadLine()?.ToUpper();
-        return opcaoMenu;
+        return opcaoMenu ?? string.Empty;
     }
 
     public void Cadastrar()
@@ -229,7 +229,7 @@ public class TelaRevista
         string idSelecionado = SelecionarCaixa();
         Caixa? caixaSelecionada = repositorioCaixa.SelecionarPorId(idSelecionado);
 
-        return new Revista(titulo, numeroEdicao, anoPublicacao, caixaSelecionada);
+        return new Revista(titulo ?? string.Empty, numeroEdicao, anoPublicacao, caixaSelecionada!);
     }
 
     private string SelecionarCaixa()
