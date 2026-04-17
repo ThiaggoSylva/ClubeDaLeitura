@@ -14,7 +14,7 @@ public class TelaCaixa
 
     public string? ObterOpcaoMenu()
     {
-        Console.Clear();
+        // Console.Clear();
         Console.WriteLine("---------------------------------");
         Console.WriteLine("Gestão de Caixas");
         Console.WriteLine("---------------------------------");
@@ -165,11 +165,11 @@ public class TelaCaixa
             "Id", "Etiqueta", "Cor", "Tempo de Empréstimo"
         );
 
-        Caixa?[] caixas = repositorioCaixa.SelecionarTodas();
+        EntidadeBase?[] caixas = repositorioCaixa.SelecionarTodas();
 
         for (int i = 0; i < caixas.Length; i++)
         {
-            Caixa? c = caixas[i];
+            Caixa? c = (Caixa?)caixas[i];
 
             if (c == null)
                 continue;
@@ -242,7 +242,7 @@ public class TelaCaixa
 
     private void ExibirCabecalho(string titulo)
     {
-        Console.Clear();
+        // Console.Clear();
         Console.WriteLine("---------------------------------");
         Console.WriteLine("Gestão de Caixas");
         Console.WriteLine("---------------------------------");

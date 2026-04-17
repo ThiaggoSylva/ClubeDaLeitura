@@ -28,33 +28,45 @@ public class TelaRevista
         Console.WriteLine("S - Voltar para o início");
         Console.WriteLine("---------------------------------");
         Console.Write("> ");
-
         string? opcaoMenu = Console.ReadLine()?.ToUpper();
-        return opcaoMenu ?? string.Empty;
+
+        return opcaoMenu;
     }
 
     public void Cadastrar()
     {
         ExibirCabecalho("Cadastro de Revista");
 
+        // 1. Obter os dados cadastrais da revista
         Revista novaRevista = ObterDadosCadastrais();
 
+        // 2. Validar a revista
         string[] erros = novaRevista.Validar();
 
         if (erros.Length > 0)
         {
-            ExibirErrosValidacao(erros);
+            Console.WriteLine("---------------------------------");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+
+            for (int i = 0; i < erros.Length; i++)
+            {
+                string erro = erros[i];
+
+                Console.WriteLine(erro);
+            }
+
+            Console.ResetColor();
+            Console.WriteLine("---------------------------------");
+            Console.Write("Digite ENTER para continuar...");
+            Console.ReadLine();
+
+            // Recursão
             Cadastrar();
             return;
         }
 
-    
-    if (repositorioRevista.ExisteRevistaComMesmoTituloEdicao(novaRevista.Titulo, novaRevista.NumeroEdicao))
-        {
-        ExibirMensagem("Já existe uma revista com o mesmo título e número de edição.");
-        return;
-        }
-
+        // 3. Armazenar a revista no repositório
         repositorioRevista.Cadastrar(novaRevista);
 
         ExibirMensagem($"O registro \"{novaRevista.Id}\" foi cadastrado com sucesso!");
@@ -62,59 +74,12 @@ public class TelaRevista
 
     public void Editar()
     {
-        ExibirCabecalho("Edição de Revista");
-        VisualizarTodos(false);
 
-        string idSelecionado = ObterIdRegistro("editar");
-
-        Revista novaRevista = ObterDadosCadastrais();
-
-        string[] erros = novaRevista.Validar();
-
-        if (erros.Length > 0)
-        {
-            ExibirErrosValidacao(erros);
-            Editar();
-            return;
-        }
-
-        
-        if (repositorioRevista.ExisteRevistaComMesmoTituloEdicao(
-            novaRevista.Titulo,
-            novaRevista.NumeroEdicao,
-            idSelecionado))
-        {
-            ExibirMensagem("Já existe outra revista com o mesmo título e número de edição.");
-            return;
-        }
-
-        bool conseguiuEditar = repositorioRevista.Editar(idSelecionado, novaRevista);
-
-        if (!conseguiuEditar)
-        {
-            ExibirMensagem("Não foi possível encontrar o registro requisitado.");
-            return;
-        }
-
-        ExibirMensagem($"O registro \"{idSelecionado}\" foi editado com sucesso.");
     }
 
     public void Excluir()
     {
-        ExibirCabecalho("Exclusão de Revista");
-        VisualizarTodos(false);
 
-        string idSelecionado = ObterIdRegistro("excluir");
-
-        bool conseguiuExcluir = repositorioRevista.Excluir(idSelecionado);
-
-        if (!conseguiuExcluir)
-        {
-            ExibirMensagem("Não foi possível encontrar o registro requisitado.");
-            return;
-        }
-
-        ExibirMensagem($"O registro \"{idSelecionado}\" foi excluído com sucesso.");
     }
 
     public void VisualizarTodos(bool deveExibirCabecalho)
@@ -127,11 +92,11 @@ public class TelaRevista
             "Id", "Título", "Edição", "Ano", "Caixa"
         );
 
-        Revista?[] revistas = repositorioRevista.SelecionarTodas();
+        EntidadeBase?[] revistas = repositorioRevista.SelecionarTodas();
 
         for (int i = 0; i < revistas.Length; i++)
         {
-            Revista? r = revistas[i];
+            Revista? r = (Revista?)revistas[i];
 
             if (r == null)
                 continue;
@@ -145,12 +110,15 @@ public class TelaRevista
 
             if (corSelecionada == "Vermelho")
                 Console.ForegroundColor = ConsoleColor.Red;
+
             else if (corSelecionada == "Verde")
                 Console.ForegroundColor = ConsoleColor.Green;
+
             else if (corSelecionada == "Azul")
                 Console.ForegroundColor = ConsoleColor.Blue;
 
             Console.Write("{0, -15}", r.Caixa.Etiqueta);
+
             Console.ResetColor();
             Console.WriteLine();
         }
@@ -167,7 +135,7 @@ public class TelaRevista
     {
         Console.Clear();
         Console.WriteLine("---------------------------------");
-        Console.WriteLine("Gestão de Revistas");
+        Console.WriteLine("Gestão de Caixas");
         Console.WriteLine("---------------------------------");
         Console.WriteLine(titulo);
         Console.WriteLine("---------------------------------");
@@ -182,39 +150,6 @@ public class TelaRevista
         Console.ReadLine();
     }
 
-    private void ExibirErrosValidacao(string[] erros)
-    {
-        Console.WriteLine("---------------------------------");
-        Console.ForegroundColor = ConsoleColor.Red;
-
-        for (int i = 0; i < erros.Length; i++)
-            Console.WriteLine(erros[i]);
-
-        Console.ResetColor();
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite ENTER para continuar...");
-        Console.ReadLine();
-    }
-
-    private string ObterIdRegistro(string acao)
-    {
-        Console.WriteLine("---------------------------------");
-
-        string? idSelecionado;
-
-        do
-        {
-            Console.Write($"Digite o ID do registro que deseja {acao}: ");
-            idSelecionado = Console.ReadLine();
-
-            if (!string.IsNullOrWhiteSpace(idSelecionado) && idSelecionado.Length == 7)
-                break;
-
-        } while (true);
-
-        return idSelecionado;
-    }
-
     private Revista ObterDadosCadastrais()
     {
         Console.Write("Digite o título da revista: ");
@@ -226,25 +161,28 @@ public class TelaRevista
         Console.Write("Digite o ano de publicação: ");
         int anoPublicacao = Convert.ToInt32(Console.ReadLine());
 
+        // Visualizar as Caixas disponívels
         string idSelecionado = SelecionarCaixa();
-        Caixa? caixaSelecionada = repositorioCaixa.SelecionarPorId(idSelecionado);
 
-        return new Revista(titulo ?? string.Empty, numeroEdicao, anoPublicacao, caixaSelecionada!);
+        Caixa? caixaSelecionada = (Caixa?)repositorioCaixa.SelecionarPorId(idSelecionado);
+
+        return new Revista(titulo, numeroEdicao, anoPublicacao, caixaSelecionada);
     }
 
     private string SelecionarCaixa()
     {
         Console.WriteLine("---------------------------------");
-        Console.WriteLine(
-            "{0, -7} | {1, -20} | {2, -10} | {3, -20}",
-            "Id", "Etiqueta", "Cor", "Tempo de Empréstimo"
-        );
 
-        Caixa?[] caixas = repositorioCaixa.SelecionarTodas();
+        Console.WriteLine(
+          "{0, -7} | {1, -20} | {2, -10} | {3, -20}",
+          "Id", "Etiqueta", "Cor", "Tempo de Empréstimo"
+      );
+
+        EntidadeBase?[] caixas = repositorioCaixa.SelecionarTodas();
 
         for (int i = 0; i < caixas.Length; i++)
         {
-            Caixa? c = caixas[i];
+            Caixa? c = (Caixa?)caixas[i];
 
             if (c == null)
                 continue;
@@ -253,8 +191,10 @@ public class TelaRevista
 
             if (corSelecionada == "Vermelho")
                 Console.ForegroundColor = ConsoleColor.Red;
+
             else if (corSelecionada == "Verde")
                 Console.ForegroundColor = ConsoleColor.Green;
+
             else if (corSelecionada == "Azul")
                 Console.ForegroundColor = ConsoleColor.Blue;
 
@@ -265,6 +205,8 @@ public class TelaRevista
         }
 
         Console.ResetColor();
+
+        // Selecionar uma caixa por ID
         Console.WriteLine("---------------------------------");
 
         string? idSelecionado;
@@ -276,7 +218,6 @@ public class TelaRevista
 
             if (!string.IsNullOrWhiteSpace(idSelecionado) && idSelecionado.Length == 7)
                 break;
-
         } while (true);
 
         return idSelecionado;
