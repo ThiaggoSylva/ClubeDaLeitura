@@ -1,88 +1,20 @@
-using System;
 using ClubeDaLeitura.ConsoleApp.Dominio;
 using ClubeDaLeitura.ConsoleApp.Infraestrutura;
 
 namespace ClubeDaLeitura.ConsoleApp.Apresentacao;
 
-public class TelaRevista
+public class TelaRevista : TelaBase
 {
     private RepositorioRevista repositorioRevista;
     private RepositorioCaixa repositorioCaixa;
 
-    public TelaRevista(RepositorioRevista rR, RepositorioCaixa rC)
+    public TelaRevista(RepositorioRevista rR, RepositorioCaixa rC) : base("Revista", rR)
     {
         repositorioRevista = rR;
         repositorioCaixa = rC;
     }
 
-    public string ObterOpcaoMenu()
-    {
-        Console.Clear();
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("Gestão de Revistas");
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("1 - Cadastrar revista");
-        Console.WriteLine("2 - Editar revista");
-        Console.WriteLine("3 - Excluir revista");
-        Console.WriteLine("4 - Visualizar revistas");
-        Console.WriteLine("S - Voltar para o início");
-        Console.WriteLine("---------------------------------");
-        Console.Write("> ");
-        string? opcaoMenu = Console.ReadLine()?.ToUpper();
-
-        return opcaoMenu;
-    }
-
-    public void Cadastrar()
-    {
-        ExibirCabecalho("Cadastro de Revista");
-
-        // 1. Obter os dados cadastrais da revista
-        Revista novaRevista = ObterDadosCadastrais();
-
-        // 2. Validar a revista
-        string[] erros = novaRevista.Validar();
-
-        if (erros.Length > 0)
-        {
-            Console.WriteLine("---------------------------------");
-
-            Console.ForegroundColor = ConsoleColor.Red;
-
-            for (int i = 0; i < erros.Length; i++)
-            {
-                string erro = erros[i];
-
-                Console.WriteLine(erro);
-            }
-
-            Console.ResetColor();
-            Console.WriteLine("---------------------------------");
-            Console.Write("Digite ENTER para continuar...");
-            Console.ReadLine();
-
-            // Recursão
-            Cadastrar();
-            return;
-        }
-
-        // 3. Armazenar a revista no repositório
-        repositorioRevista.Cadastrar(novaRevista);
-
-        ExibirMensagem($"O registro \"{novaRevista.Id}\" foi cadastrado com sucesso!");
-    }
-
-    public void Editar()
-    {
-
-    }
-
-    public void Excluir()
-    {
-
-    }
-
-    public void VisualizarTodos(bool deveExibirCabecalho)
+    public override void VisualizarTodos(bool deveExibirCabecalho)
     {
         if (deveExibirCabecalho)
             ExibirCabecalho("Visualização de Revistas");
@@ -131,26 +63,7 @@ public class TelaRevista
         }
     }
 
-    private void ExibirCabecalho(string titulo)
-    {
-        Console.Clear();
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("Gestão de Caixas");
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine(titulo);
-        Console.WriteLine("---------------------------------");
-    }
-
-    private void ExibirMensagem(string mensagem)
-    {
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine(mensagem);
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite ENTER para continuar...");
-        Console.ReadLine();
-    }
-
-    private Revista ObterDadosCadastrais()
+    protected override EntidadeBase ObterDadosCadastrais()
     {
         Console.Write("Digite o título da revista: ");
         string? titulo = Console.ReadLine();

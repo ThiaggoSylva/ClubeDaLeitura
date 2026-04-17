@@ -1,4 +1,5 @@
 namespace ClubeDaLeitura.ConsoleApp.Dominio;
+
 public class Caixa : EntidadeBase
 {
     public string Etiqueta { get; set; } = string.Empty;
@@ -32,13 +33,14 @@ public class Caixa : EntidadeBase
             erros += "O campo \"Dias de Empréstimo\" deve conter um valor maior que 0;";
         }
 
-        return erros.Split(';', StringSplitOptions.RemoveEmptyEntries); // separar
+        return erros.Split(';', StringSplitOptions.RemoveEmptyEntries); 
     }
 
+    
     public override void AtualizarRegistro(EntidadeBase entidadeAtualizada)
     {
         
-        Caixa caixaAtualizada = (Caixa)entidadeAtualizada; // cast / conversão de tipo
+        Caixa caixaAtualizada = (Caixa)entidadeAtualizada;
 
         Etiqueta = caixaAtualizada.Etiqueta;
         Cor = caixaAtualizada.Cor;

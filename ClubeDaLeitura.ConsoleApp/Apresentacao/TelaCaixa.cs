@@ -3,159 +3,16 @@ using ClubeDaLeitura.ConsoleApp.Infraestrutura;
 
 namespace ClubeDaLeitura.ConsoleApp.Apresentacao;
 
-public class TelaCaixa
+public class TelaCaixa : TelaBase
 {
     private RepositorioCaixa repositorioCaixa;
 
-    public TelaCaixa(RepositorioCaixa rC)
+    public TelaCaixa(RepositorioCaixa rC) : base("Caixa", rC)
     {
         repositorioCaixa = rC;
     }
 
-    public string? ObterOpcaoMenu()
-    {
-        // Console.Clear();
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("Gestão de Caixas");
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("1 - Cadastrar caixa");
-        Console.WriteLine("2 - Editar caixa");
-        Console.WriteLine("3 - Excluir caixa");
-        Console.WriteLine("4 - Visualizar caixas");
-        Console.WriteLine("S - Voltar para o início");
-        Console.WriteLine("---------------------------------");
-        Console.Write("> ");
-        string? opcaoMenu = Console.ReadLine()?.ToUpper();
-
-        return opcaoMenu;
-    }
-
-    public void Cadastrar()
-    {
-        ExibirCabecalho("Cadastro de Caixa");
-
-        Caixa novaCaixa = ObterDadosCadastrais();
-
-        string[] erros = novaCaixa.Validar();
-
-        if (erros.Length > 0)
-        {
-            Console.WriteLine("---------------------------------");
-
-            Console.ForegroundColor = ConsoleColor.Red;
-
-            for (int i = 0; i < erros.Length; i++)
-            {
-                string erro = erros[i];
-
-                Console.WriteLine(erro);
-            }
-
-            Console.ResetColor();
-            Console.WriteLine("---------------------------------");
-            Console.Write("Digite ENTER para continuar...");
-            Console.ReadLine();
-
-            // Recursão
-            Cadastrar();
-            return;
-        }
-
-        repositorioCaixa.Cadastrar(novaCaixa);
-
-        ExibirMensagem($"O registro \"{novaCaixa.Id}\" foi cadastrado com sucesso!");
-    }
-
-    public void Editar()
-    {
-        ExibirCabecalho("Edição de Caixa");
-
-        VisualizarTodos(deveExibirCabecalho: false);
-
-        Console.WriteLine("---------------------------------");
-
-        string? idSelecionado;
-
-        do
-        {
-            Console.Write("Digite o ID do registro que deseja editar: ");
-            idSelecionado = Console.ReadLine();
-
-            if (!string.IsNullOrWhiteSpace(idSelecionado) && idSelecionado.Length == 7)
-                break;
-        } while (true);
-
-        Console.WriteLine("---------------------------------");
-
-        Caixa novaCaixa = ObterDadosCadastrais();
-
-        string[] erros = novaCaixa.Validar();
-
-        if (erros.Length > 0)
-        {
-            Console.WriteLine("---------------------------------");
-
-            Console.ForegroundColor = ConsoleColor.Red;
-
-            for (int i = 0; i < erros.Length; i++)
-            {
-                string erro = erros[i];
-
-                Console.WriteLine(erro);
-            }
-
-            Console.ResetColor();
-            Console.WriteLine("---------------------------------");
-            Console.Write("Digite ENTER para continuar...");
-            Console.ReadLine();
-
-            // Recursão
-            Editar();
-            return;
-        }
-
-        bool conseguiuEditar = repositorioCaixa.Editar(idSelecionado, novaCaixa);
-
-        if (!conseguiuEditar)
-        {
-            ExibirMensagem("Não foi possível encontrar o registro requisitado.");
-            return;
-        }
-
-        ExibirMensagem($"O registro \"{idSelecionado}\" foi editado com sucesso.");
-    }
-
-    public void Excluir()
-    {
-        ExibirCabecalho("Exclusão de Caixa");
-
-        VisualizarTodos(deveExibirCabecalho: false);
-
-        Console.WriteLine("---------------------------------");
-
-        string? idSelecionado;
-
-        do
-        {
-            Console.Write("Digite o ID do registro que deseja excluir: ");
-            idSelecionado = Console.ReadLine();
-
-            if (!string.IsNullOrWhiteSpace(idSelecionado) && idSelecionado.Length == 7)
-                break;
-        } while (true);
-
-        bool conseguiuExcluir = repositorioCaixa.Excluir(idSelecionado);
-
-        if (!conseguiuExcluir)
-        {
-            ExibirMensagem("Não foi possível encontrar o registro requisitado.");
-            return;
-        }
-
-        ExibirMensagem($"O registro \"{idSelecionado}\" foi excluído com sucesso.");
-    }
-
-    public void VisualizarTodos(bool deveExibirCabecalho)
+    public override void VisualizarTodos(bool deveExibirCabecalho)
     {
         if (deveExibirCabecalho)
             ExibirCabecalho("Visualização de Caixas");
@@ -201,7 +58,7 @@ public class TelaCaixa
         }
     }
 
-    private Caixa ObterDadosCadastrais()
+    protected override EntidadeBase ObterDadosCadastrais()
     {
         Console.Write("Informe a etiqueta da caixa: ");
         string? etiqueta = Console.ReadLine();
@@ -238,24 +95,5 @@ public class TelaCaixa
         Caixa novaCaixa = new Caixa(etiqueta, cor, diasDeEmprestimo);
 
         return novaCaixa;
-    }
-
-    private void ExibirCabecalho(string titulo)
-    {
-        // Console.Clear();
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("Gestão de Caixas");
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine(titulo);
-        Console.WriteLine("---------------------------------");
-    }
-
-    private void ExibirMensagem(string mensagem)
-    {
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine(mensagem);
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite ENTER para continuar...");
-        Console.ReadLine();
     }
 }

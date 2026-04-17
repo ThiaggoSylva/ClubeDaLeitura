@@ -1,5 +1,4 @@
 namespace ClubeDaLeitura.ConsoleApp.Dominio;
-
 public class Revista : EntidadeBase
 {
     public string Titulo { get; set; }
