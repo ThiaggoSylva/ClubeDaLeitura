@@ -40,7 +40,6 @@ public abstract class TelaBase
             Console.Write("Digite ENTER para continuar...");
             Console.ReadLine();
 
-            // Recursão
             Cadastrar();
             return;
         }
@@ -93,7 +92,6 @@ public abstract class TelaBase
             Console.Write("Digite ENTER para continuar...");
             Console.ReadLine();
 
-            // Recursão
             Editar();
             return;
         }

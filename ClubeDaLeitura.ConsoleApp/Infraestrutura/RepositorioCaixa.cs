@@ -1,3 +1,3 @@
-namespace ClubeDaLeitura.ConsoleApp.Infraestrutura;
+namespace ClubeDaLeitura.ConsoleApp.Infraestrutura.Base;
 
 public class RepositorioCaixa : RepositorioBase;

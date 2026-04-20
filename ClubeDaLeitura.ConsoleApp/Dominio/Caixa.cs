@@ -1,4 +1,4 @@
-namespace ClubeDaLeitura.ConsoleApp.Dominio;
+namespace ClubeDaLeitura.ConsoleApp.Dominio.Base;
 
 public class Caixa : EntidadeBase
 {

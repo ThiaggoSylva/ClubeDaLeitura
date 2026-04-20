@@ -1,6 +1,6 @@
 ﻿﻿using ClubeDaLeitura.ConsoleApp.Apresentacao;
-using ClubeDaLeitura.ConsoleApp.Dominio;
-using ClubeDaLeitura.ConsoleApp.Infraestrutura;
+using ClubeDaLeitura.ConsoleApp.Dominio.Base;
+using ClubeDaLeitura.ConsoleApp.Infraestrutura.Base;
 
 RepositorioCaixa repositorioCaixa = new RepositorioCaixa();
 RepositorioRevista repositorioRevista = new RepositorioRevista();
@@ -13,6 +13,10 @@ repositorioCaixa.Cadastrar(caixa);
 
 Revista revista = new Revista("Action Comics", 155, 1990, caixa);
 repositorioRevista.Cadastrar(revista);
+
+Amigo amigo = new Amigo("Joaozinho", "Dona Cleide", "85 99999-9999");
+amigo.Validar();
+
 
 while (true)
 {
