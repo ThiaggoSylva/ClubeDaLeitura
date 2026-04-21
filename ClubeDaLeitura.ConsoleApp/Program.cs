@@ -1,4 +1,5 @@
-﻿﻿﻿using ClubeDaLeitura.ConsoleApp.Apresentacao;
+﻿﻿using ClubeDaLeitura.ConsoleApp.Apresentacao;
+using ClubeDaLeitura.ConsoleApp.Dominio;
 using ClubeDaLeitura.ConsoleApp.Dominio.Base;
 using ClubeDaLeitura.ConsoleApp.Infraestrutura;
 using ClubeDaLeitura.ConsoleApp.Infraestrutura.Base;
@@ -6,10 +7,12 @@ using ClubeDaLeitura.ConsoleApp.Infraestrutura.Base;
 RepositorioCaixa repositorioCaixa = new RepositorioCaixa();
 RepositorioRevista repositorioRevista = new RepositorioRevista();
 RepositorioAmigo repositorioAmigo = new RepositorioAmigo();
+RepositorioEmprestimo repositorioEmprestimo = new RepositorioEmprestimo();
 
 TelaCaixa telaCaixa = new TelaCaixa(repositorioCaixa);
 TelaRevista telaRevista = new TelaRevista(repositorioRevista, repositorioCaixa);
-TelaAmigo telaAmigo = new TelaAmigo(repositorioAmigo);
+TelaAmigo telaAmigo = new TelaAmigo(repositorioAmigo, repositorioEmprestimo);
+TelaEmprestimo telaEmprestimo = new TelaEmprestimo(repositorioEmprestimo, repositorioAmigo, repositorioRevista);
 
 Caixa caixa = new Caixa("Lançamentos", "Vermelho", 3);
 repositorioCaixa.Cadastrar(caixa);
@@ -17,7 +20,7 @@ repositorioCaixa.Cadastrar(caixa);
 Revista revista = new Revista("Action Comics", 155, 1990, caixa);
 repositorioRevista.Cadastrar(revista);
 
-Amigo amigo = new Amigo("Joãozinho", "Dona Cleide", "49 98222-4353");
+Amigo amigo = new Amigo("Joãozinho", "Dona Cleide", "49982224353");
 repositorioAmigo.Cadastrar(amigo);
 
 while (true)
@@ -33,6 +36,7 @@ while (true)
     Console.WriteLine("S - Sair");
     Console.WriteLine("---------------------------------");
     Console.Write("> ");
+
     string? opcaoMenuPrincipal = Console.ReadLine()?.ToUpper();
 
     if (opcaoMenuPrincipal == "S")
@@ -45,7 +49,7 @@ while (true)
     {
         string? opcaoMenuInterno = string.Empty;
 
-        if (opcaoMenuPrincipal == "1") // Caixas
+        if (opcaoMenuPrincipal == "1")
         {
             opcaoMenuInterno = telaCaixa.ObterOpcaoMenu();
 
@@ -57,18 +61,14 @@ while (true)
 
             if (opcaoMenuInterno == "1")
                 telaCaixa.Cadastrar();
-
             else if (opcaoMenuInterno == "2")
                 telaCaixa.Editar();
-
             else if (opcaoMenuInterno == "3")
                 telaCaixa.Excluir();
-
             else if (opcaoMenuInterno == "4")
-                telaCaixa.VisualizarTodos(deveExibirCabecalho: true);
+                telaCaixa.VisualizarTodos(true);
         }
-
-        else if (opcaoMenuPrincipal == "2") // Revistas
+        else if (opcaoMenuPrincipal == "2")
         {
             opcaoMenuInterno = telaRevista.ObterOpcaoMenu();
 
@@ -80,18 +80,14 @@ while (true)
 
             if (opcaoMenuInterno == "1")
                 telaRevista.Cadastrar();
-
             else if (opcaoMenuInterno == "2")
                 telaRevista.Editar();
-
             else if (opcaoMenuInterno == "3")
                 telaRevista.Excluir();
-
             else if (opcaoMenuInterno == "4")
-                telaRevista.VisualizarTodos(deveExibirCabecalho: true);
+                telaRevista.VisualizarTodos(true);
         }
-
-        else if (opcaoMenuPrincipal == "3") // Amigos
+        else if (opcaoMenuPrincipal == "3")
         {
             opcaoMenuInterno = telaAmigo.ObterOpcaoMenu();
 
@@ -103,20 +99,33 @@ while (true)
 
             if (opcaoMenuInterno == "1")
                 telaAmigo.Cadastrar();
-
             else if (opcaoMenuInterno == "2")
                 telaAmigo.Editar();
-
             else if (opcaoMenuInterno == "3")
                 telaAmigo.Excluir();
-
             else if (opcaoMenuInterno == "4")
-                telaAmigo.VisualizarTodos(deveExibirCabecalho: true);
+                telaAmigo.VisualizarTodos(true);
         }
-
         else if (opcaoMenuPrincipal == "4")
         {
+            opcaoMenuInterno = telaEmprestimo.ObterOpcaoMenu();
 
+            if (opcaoMenuInterno == "S")
+            {
+                Console.Clear();
+                break;
+            }
+
+            if (opcaoMenuInterno == "1")
+                telaEmprestimo.Cadastrar();
+            else if (opcaoMenuInterno == "2")
+                telaEmprestimo.RegistrarDevolucao();
+            else if (opcaoMenuInterno == "3")
+                telaEmprestimo.VisualizarAbertos(true);
+            else if (opcaoMenuInterno == "4")
+                telaEmprestimo.VisualizarFechados(true);
+            else if (opcaoMenuInterno == "5")
+                telaEmprestimo.VisualizarPorAmigo();
         }
     }
 }
