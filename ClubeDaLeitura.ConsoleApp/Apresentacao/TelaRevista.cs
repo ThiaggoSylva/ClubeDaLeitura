@@ -1,257 +1,119 @@
 using ClubeDaLeitura.ConsoleApp.Dominio;
 using ClubeDaLeitura.ConsoleApp.Dominio.Base;
 using ClubeDaLeitura.ConsoleApp.Infraestrutura;
-using ClubeDaLeitura.ConsoleApp.Infraestrutura.Base;
 
 namespace ClubeDaLeitura.ConsoleApp.Apresentacao;
 
-public class TelaRevista
+public class TelaRevista : TelaBase
 {
-    private RepositorioRevista repositorioRevista;
-    private RepositorioCaixa repositorioCaixa;
+    private readonly RepositorioRevista repositorioRevista;
+    private readonly RepositorioCaixa repositorioCaixa;
+    private readonly RepositorioEmprestimo repositorioEmprestimo;
 
-    public TelaRevista(RepositorioRevista rR, RepositorioCaixa rC)
+    public override string NomeEntidade => "Revistas";
+
+    public TelaRevista(
+        RepositorioRevista repositorioRevista,
+        RepositorioCaixa repositorioCaixa,
+        RepositorioEmprestimo repositorioEmprestimo) : base(repositorioRevista)
     {
-        repositorioRevista = rR;
-        repositorioCaixa = rC;
+        this.repositorioRevista = repositorioRevista;
+        this.repositorioCaixa = repositorioCaixa;
+        this.repositorioEmprestimo = repositorioEmprestimo;
     }
 
-    public string ObterOpcaoMenu()
+    protected override EntidadeBase ObterDados()
     {
-        Console.Clear();
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("Gestão de Revistas");
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("1 - Cadastrar revista");
-        Console.WriteLine("2 - Editar revista");
-        Console.WriteLine("3 - Excluir revista");
-        Console.WriteLine("4 - Visualizar revistas");
-        Console.WriteLine("S - Voltar para o início");
-        Console.WriteLine("---------------------------------");
-        Console.Write("> ");
+        Console.Write("Título: ");
+        string titulo = Console.ReadLine() ?? string.Empty;
 
-        string? opcaoMenu = Console.ReadLine()?.ToUpper();
-        return opcaoMenu!;
+        int numeroEdicao = LerInteiro("Número da edição: ");
+        int ano = LerInteiro("Ano de publicação: ");
+
+        Caixa caixa = SelecionarCaixa();
+
+        return new Revista(titulo, numeroEdicao, ano, caixa);
     }
 
-    public void Cadastrar()
+    public override void Cadastrar()
     {
         ExibirCabecalho("Cadastro de Revista");
+        Revista revista = (Revista)ObterDados();
 
-        Revista novaRevista = ObterDadosCadastrais();
-
-        if (repositorioRevista.ExisteRevistaComMesmoTituloEdicao(novaRevista.Titulo, novaRevista.NumeroEdicao))
+        if (repositorioRevista.ExisteRevistaComMesmoTituloEdicao(revista.Titulo, revista.NumeroEdicao))
         {
-            ExibirMensagem("Já existe uma revista com o mesmo título e número de edição.");
+            Mensagem("Já existe uma revista com esse título e edição.");
             return;
         }
 
-        string[] erros = novaRevista.Validar();
-
-        if (erros.Length > 0)
-        {
-            ExibirErros(erros);
-            Cadastrar();
-            return;
-        }
-
-        repositorioRevista.Cadastrar(novaRevista);
-        ExibirMensagem($"O registro \"{novaRevista.Id}\" foi cadastrado com sucesso!");
+        SalvarCadastro(revista);
     }
 
-    public void Editar()
+    public override void Editar()
     {
         ExibirCabecalho("Edição de Revista");
         VisualizarTodos(false);
 
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite o ID da revista que deseja editar: ");
-        string idSelecionado = Console.ReadLine() ?? string.Empty;
+        Console.Write("Digite o ID: ");
+        string id = Console.ReadLine() ?? string.Empty;
 
-        Revista? revistaAntiga = repositorioRevista.SelecionarPorId(idSelecionado);
+        Revista revista = (Revista)ObterDados();
 
-        if (revistaAntiga == null)
+        if (repositorioRevista.ExisteRevistaComMesmoTituloEdicao(revista.Titulo, revista.NumeroEdicao, id))
         {
-            ExibirMensagem("Não foi possível encontrar o registro requisitado.");
+            Mensagem("Já existe uma revista com esse título e edição.");
             return;
         }
 
-        Revista revistaEditada = ObterDadosCadastrais();
-        revistaEditada.Status = revistaAntiga.Status;
-
-        string[] erros = revistaEditada.Validar();
-
-        if (erros.Length > 0)
-        {
-            ExibirErros(erros);
-            return;
-        }
-
-        bool conseguiuEditar = repositorioRevista.Editar(idSelecionado, revistaEditada);
-
-        if (!conseguiuEditar)
-        {
-            ExibirMensagem("Não foi possível editar a revista.");
-            return;
-        }
-
-        ExibirMensagem($"O registro \"{idSelecionado}\" foi editado com sucesso.");
+        SalvarEdicao(id, revista);
     }
 
-    public void Excluir()
+    public override void Excluir()
     {
         ExibirCabecalho("Exclusão de Revista");
         VisualizarTodos(false);
 
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite o ID da revista que deseja excluir: ");
-        string idSelecionado = Console.ReadLine() ?? string.Empty;
+        Console.Write("Digite o ID: ");
+        string id = Console.ReadLine() ?? string.Empty;
 
-        bool conseguiuExcluir = repositorioRevista.Excluir(idSelecionado);
-
-        if (!conseguiuExcluir)
+        if (repositorioEmprestimo.ExisteEmprestimoAbertoParaRevista(id))
         {
-            ExibirMensagem("Não foi possível encontrar o registro requisitado.");
+            Mensagem("Não é permitido excluir revista com empréstimo aberto.");
             return;
         }
 
-        ExibirMensagem($"O registro \"{idSelecionado}\" foi excluído com sucesso.");
+        base.Excluir();
     }
 
-    public void VisualizarTodos(bool deveExibirCabecalho)
+    public override void VisualizarTodos(bool exibirCabecalho)
     {
-        if (deveExibirCabecalho)
+        if (exibirCabecalho)
             ExibirCabecalho("Visualização de Revistas");
 
-        Console.WriteLine(
-            "{0, -7} | {1, -25} | {2, -6} | {3, -6} | {4, -15} | {5, -12}",
-            "Id", "Título", "Edição", "Ano", "Caixa", "Status"
-        );
+        Console.WriteLine("{0,-8} | {1,-20} | {2,-6} | {3,-6} | {4,-15} | {5,-12}",
+            "ID", "Título", "Edição", "Ano", "Caixa", "Status");
 
-        Revista?[] revistas = repositorioRevista.SelecionarTodas();
-
-        for (int i = 0; i < revistas.Length; i++)
+        foreach (Revista revista in repositorioRevista.SelecionarTodos().OfType<Revista>())
         {
-            Revista? r = revistas[i];
-
-            if (r == null)
-                continue;
-
-            Console.Write("{0, -7} | ", r.Id);
-            Console.Write("{0, -25} | ", r.Titulo);
-            Console.Write("{0, -6} | ", r.NumeroEdicao);
-            Console.Write("{0, -6} | ", r.AnoPublicacao);
-
-            string corSelecionada = r.Caixa.Cor;
-
-            if (corSelecionada == "Vermelho")
-                Console.ForegroundColor = ConsoleColor.Red;
-            else if (corSelecionada == "Verde")
-                Console.ForegroundColor = ConsoleColor.Green;
-            else if (corSelecionada == "Azul")
-                Console.ForegroundColor = ConsoleColor.Blue;
-
-            Console.Write("{0, -15}", r.Caixa.Etiqueta);
-            Console.ResetColor();
-
-            Console.Write(" | {0, -12}", r.Status);
-            Console.WriteLine();
+            Console.WriteLine("{0,-8} | {1,-20} | {2,-6} | {3,-6} | {4,-15} | {5,-12}",
+                revista.Id, revista.Titulo, revista.NumeroEdicao, revista.AnoPublicacao, revista.Caixa.Etiqueta, revista.Status);
         }
 
-        if (deveExibirCabecalho)
-        {
-            Console.WriteLine("---------------------------------");
-            Console.WriteLine("Digite ENTER para continuar...");
-            Console.ReadLine();
-        }
+        if (exibirCabecalho)
+            Mensagem("Fim da listagem.");
     }
 
-    private Revista ObterDadosCadastrais()
-{
-    Console.Write("Digite o título da revista: ");
-    string titulo = Console.ReadLine() ?? string.Empty;
-
-    Console.Write("Digite o número da edição: ");
-    int numeroEdicao = Convert.ToInt32(Console.ReadLine());
-
-    Console.Write("Digite o ano de publicação: ");
-    int anoPublicacao = Convert.ToInt32(Console.ReadLine());
-
-    string idSelecionado = SelecionarCaixa();
-    Caixa? caixaSelecionada = (Caixa?)repositorioCaixa.SelecionarPorId(idSelecionado);
-
-    return new Revista(titulo, numeroEdicao, anoPublicacao, caixaSelecionada!);
-}
-
-    private string SelecionarCaixa()
+    private Caixa SelecionarCaixa()
     {
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine(
-            "{0, -7} | {1, -20} | {2, -10} | {3, -20}",
-            "Id", "Etiqueta", "Cor", "Tempo de Empréstimo"
-        );
+        Console.WriteLine();
+        Console.WriteLine("Caixas disponíveis:");
 
-        Caixa?[] caixas = (Caixa?[])repositorioCaixa.SelecionarTodas();
+        foreach (Caixa caixa in repositorioCaixa.SelecionarTodos().OfType<Caixa>())
+            Console.WriteLine($"{caixa.Id} | {caixa.Etiqueta}");
 
-        for (int i = 0; i < caixas.Length; i++)
-        {
-            Caixa? c = caixas[i];
+        Console.Write("Digite o ID da caixa: ");
+        string id = Console.ReadLine() ?? string.Empty;
 
-            if (c == null)
-                continue;
-
-            string corSelecionada = c.Cor;
-
-            if (corSelecionada == "Vermelho")
-                Console.ForegroundColor = ConsoleColor.Red;
-            else if (corSelecionada == "Verde")
-                Console.ForegroundColor = ConsoleColor.Green;
-            else if (corSelecionada == "Azul")
-                Console.ForegroundColor = ConsoleColor.Blue;
-
-            Console.WriteLine(
-                "{0, -7} | {1, -20} | {2, -10} | {3, -20}",
-                c.Id, c.Etiqueta, c.Cor, c.DiasDeEmprestimo
-            );
-        }
-
-        Console.ResetColor();
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite o ID da caixa em que deseja guardar a revista: ");
-
-        return Console.ReadLine() ?? string.Empty;
-    }
-
-    private void ExibirCabecalho(string titulo)
-    {
-        Console.Clear();
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("Gestão de Revistas");
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine(titulo);
-        Console.WriteLine("---------------------------------");
-    }
-
-    private void ExibirMensagem(string mensagem)
-    {
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine(mensagem);
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite ENTER para continuar...");
-        Console.ReadLine();
-    }
-
-    private void ExibirErros(string[] erros)
-    {
-        Console.WriteLine("---------------------------------");
-        Console.ForegroundColor = ConsoleColor.Red;
-
-        for (int i = 0; i < erros.Length; i++)
-            Console.WriteLine(erros[i]);
-
-        Console.ResetColor();
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite ENTER para continuar...");
-        Console.ReadLine();
+        return (Caixa)repositorioCaixa.SelecionarPorId(id)!;
     }
 }

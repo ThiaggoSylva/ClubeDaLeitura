@@ -1,116 +1,32 @@
-using ClubeDaLeitura.ConsoleApp.Dominio.Base;
+using ClubeDaLeitura.ConsoleApp.Dominio;
+using ClubeDaLeitura.ConsoleApp.Infraestrutura.Base;
 
 namespace ClubeDaLeitura.ConsoleApp.Infraestrutura;
 
-public class RepositorioRevista
+public class RepositorioRevista : RepositorioBase
 {
-    private Revista?[] revistas = new Revista[100];
-
-    public void Cadastrar(Revista novaRevista)
+    public bool ExisteRevistaComMesmoTituloEdicao(string titulo, int numeroEdicao, string? idIgnorado = null)
     {
-        for (int i = 0; i < revistas.Length; i++)
-        {
-            if (revistas[i] == null)
-            {
-                revistas[i] = novaRevista;
-                break;
-            }
-        }
+        return registros
+            .OfType<Revista>()
+            .Any(x =>
+                x.Titulo.Equals(titulo, StringComparison.OrdinalIgnoreCase) &&
+                x.NumeroEdicao == numeroEdicao &&
+                x.Id != idIgnorado);
     }
 
-    public bool Editar(string idSelecionado, Revista novaRevista)
+    public bool ExisteRevistaVinculadaNaCaixa(string caixaId)
     {
-        Revista? revistaSelecionada = SelecionarPorId(idSelecionado);
-
-        if (revistaSelecionada == null)
-            return false;
-
-        revistaSelecionada.AtualizarRegistro(novaRevista);
-
-        return true;
+        return registros
+            .OfType<Revista>()
+            .Any(x => x.Caixa.Id == caixaId);
     }
 
-    public bool Excluir(string idSelecionado)
+    public Revista[] SelecionarDisponiveis()
     {
-        for (int i = 0; i < revistas.Length; i++)
-        {
-            Revista? r = revistas[i];
-
-            if (r == null)
-                continue;
-
-            if (r.Id == idSelecionado)
-            {
-                revistas[i] = null;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public Revista? SelecionarPorId(string idSelecionado)
-    {
-        Revista? revistaSelecionada = null;
-
-        for (int i = 0; i < revistas.Length; i++)
-        {
-            Revista? r = revistas[i];
-
-            if (r == null)
-                continue;
-
-            if (r.Id == idSelecionado)
-            {
-                revistaSelecionada = r;
-                break;
-            }
-        }
-
-        return revistaSelecionada;
-    }
-
-    public Revista?[] SelecionarTodas()
-    {
-        return revistas;
-    }
-
-    public Revista?[] SelecionarDisponiveis()
-    {
-        Revista?[] disponiveis = new Revista[100];
-        int indice = 0;
-
-        for (int i = 0; i < revistas.Length; i++)
-        {
-            Revista? revista = revistas[i];
-
-            if (revista == null)
-                continue;
-
-            if (revista.Status == StatusRevista.Disponivel)
-            {
-                disponiveis[indice] = revista;
-                indice++;
-            }
-        }
-
-        return disponiveis;
-    }
-
-    public bool ExisteRevistaComMesmoTituloEdicao(string titulo, int numeroEdicao)
-    {
-        for (int i = 0; i < revistas.Length; i++)
-        {
-            Revista? revista = revistas[i];
-
-            if (revista == null)
-                continue;
-
-            if (revista.Titulo.Equals(titulo, StringComparison.OrdinalIgnoreCase) &&
-                revista.NumeroEdicao == numeroEdicao)
-                return true;
-        }
-
-        return false;
+        return registros
+            .OfType<Revista>()
+            .Where(x => x.Status == Dominio.Enums.StatusRevista.Disponivel)
+            .ToArray();
     }
 }

@@ -1,14 +1,14 @@
 using ClubeDaLeitura.ConsoleApp.Dominio;
-using ClubeDaLeitura.ConsoleApp.Dominio.Base;
+using ClubeDaLeitura.ConsoleApp.Dominio.Enums;
 using ClubeDaLeitura.ConsoleApp.Infraestrutura;
 
 namespace ClubeDaLeitura.ConsoleApp.Apresentacao;
 
 public class TelaEmprestimo
 {
-    private RepositorioEmprestimo repositorioEmprestimo;
-    private RepositorioAmigo repositorioAmigo;
-    private RepositorioRevista repositorioRevista;
+    private readonly RepositorioEmprestimo repositorioEmprestimo;
+    private readonly RepositorioAmigo repositorioAmigo;
+    private readonly RepositorioRevista repositorioRevista;
 
     public TelaEmprestimo(
         RepositorioEmprestimo repositorioEmprestimo,
@@ -20,274 +20,200 @@ public class TelaEmprestimo
         this.repositorioRevista = repositorioRevista;
     }
 
-    public string? ObterOpcaoMenu()
+    public void ApresentarMenu()
     {
-        Console.Clear();
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("Gestão de Empréstimos");
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("1 - Registrar empréstimo");
-        Console.WriteLine("2 - Registrar devolução");
-        Console.WriteLine("3 - Visualizar empréstimos abertos");
-        Console.WriteLine("4 - Visualizar empréstimos fechados");
-        Console.WriteLine("5 - Visualizar empréstimos por amigo");
-        Console.WriteLine("S - Voltar para o início");
-        Console.WriteLine("---------------------------------");
-        Console.Write("> ");
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("---------------------------------");
+            Console.WriteLine("Gestão de Empréstimos");
+            Console.WriteLine("---------------------------------");
+            Console.WriteLine("1 - Registrar empréstimo");
+            Console.WriteLine("2 - Registrar devolução");
+            Console.WriteLine("3 - Visualizar empréstimos abertos");
+            Console.WriteLine("4 - Visualizar empréstimos fechados");
+            Console.WriteLine("5 - Visualizar todos");
+            Console.WriteLine("6 - Reservar revista");
+            Console.WriteLine("S - Voltar");
+            Console.WriteLine("---------------------------------");
+            Console.Write("> ");
 
-        return Console.ReadLine()?.ToUpper();
+            string opcao = Console.ReadLine()?.ToUpper() ?? "S";
+
+            if (opcao == "S")
+                break;
+            else if (opcao == "1")
+                RegistrarEmprestimo();
+            else if (opcao == "2")
+                RegistrarDevolucao();
+            else if (opcao == "3")
+                VisualizarAbertos();
+            else if (opcao == "4")
+                VisualizarFechados();
+            else if (opcao == "5")
+                VisualizarTodos();
+            else if (opcao == "6")
+                ReservarRevista();
+        }
     }
 
-    public void Cadastrar()
+    private void RegistrarEmprestimo()
     {
-        ExibirCabecalho("Novo Empréstimo");
+        Console.Clear();
+        Console.WriteLine("Registrar Empréstimo");
+        Console.WriteLine();
 
-        Amigo? amigoSelecionado = SelecionarAmigo();
+        Amigo amigo = SelecionarAmigo();
 
-        if (amigoSelecionado == null)
+        if (repositorioEmprestimo.AmigoPossuiEmprestimoAtivo(amigo))
         {
-            ExibirMensagem("Amigo não encontrado.");
+            Pausar("Esse amigo já possui empréstimo ativo.");
             return;
         }
 
-        if (repositorioEmprestimo.AmigoPossuiEmprestimoAtivo(amigoSelecionado.Id))
+        Revista revista = SelecionarRevistaDisponivel();
+
+        if (revista.Status != StatusRevista.Disponivel)
         {
-            ExibirMensagem("Este amigo já possui um empréstimo ativo.");
+            Pausar("A revista selecionada não está disponível.");
             return;
         }
 
-        Revista? revistaSelecionada = SelecionarRevistaDisponivel();
+        Emprestimo emprestimo = new Emprestimo(amigo, revista);
+        revista.Status = StatusRevista.Emprestada;
+        repositorioEmprestimo.Cadastrar(emprestimo);
+
+        Pausar($"Empréstimo registrado. Devolução prevista: {emprestimo.DataDevolucao:dd/MM/yyyy}");
+    }
+
+    private void RegistrarDevolucao()
+    {
+        Console.Clear();
+        Console.WriteLine("Registrar Devolução");
+        Console.WriteLine();
+
+        foreach (var emprestimo in repositorioEmprestimo.SelecionarAbertos())
+        {
+            if (emprestimo.Status == StatusEmprestimo.Atrasado)
+                Console.ForegroundColor = ConsoleColor.Red;
+
+            Console.WriteLine($"{emprestimo.Id} | {emprestimo.Amigo.Nome} | {emprestimo.Revista.Titulo} | {emprestimo.DataDevolucao:dd/MM/yyyy} | {emprestimo.Status}");
+            Console.ResetColor();
+        }
+
+        Console.Write("Digite o ID do empréstimo: ");
+        string id = Console.ReadLine() ?? string.Empty;
+
+        Emprestimo? emprestimoSelecionado = (Emprestimo?)repositorioEmprestimo.SelecionarPorId(id);
+
+        if (emprestimoSelecionado == null)
+        {
+            Pausar("Empréstimo não encontrado.");
+            return;
+        }
+
+        emprestimoSelecionado.RegistrarDevolucao();
+        Pausar("Devolução registrada com sucesso.");
+    }
+
+    private void ReservarRevista()
+    {
+        Console.Clear();
+        Console.WriteLine("Reservar Revista");
+        Console.WriteLine();
+
+        foreach (Revista revista in repositorioRevista.SelecionarTodos().OfType<Revista>()
+                     .Where(x => x.Status == StatusRevista.Disponivel))
+        {
+            Console.WriteLine($"{revista.Id} | {revista.Titulo} | {revista.Status}");
+        }
+
+        Console.Write("Digite o ID da revista: ");
+        string id = Console.ReadLine() ?? string.Empty;
+
+        Revista? revistaSelecionada = (Revista?)repositorioRevista.SelecionarPorId(id);
 
         if (revistaSelecionada == null)
         {
-            ExibirMensagem("Revista indisponível ou não encontrada.");
+            Pausar("Revista não encontrada.");
             return;
         }
 
-        Emprestimo novoEmprestimo = new Emprestimo(amigoSelecionado, revistaSelecionada);
-
-        string[] erros = novoEmprestimo.Validar();
-
-        if (erros.Length > 0)
-        {
-            ExibirErros(erros);
-            return;
-        }
-
-        bool conseguiuRegistrar = repositorioEmprestimo.RegistrarEmprestimo(novoEmprestimo);
-
-        if (!conseguiuRegistrar)
-        {
-            ExibirMensagem("Não foi possível registrar o empréstimo.");
-            return;
-        }
-
-        ExibirMensagem(
-            $"Empréstimo registrado com sucesso.\n" +
-            $"Data do empréstimo: {novoEmprestimo.DataEmprestimo:dd/MM/yyyy}\n" +
-            $"Data prevista para devolução: {novoEmprestimo.DataDevolucao:dd/MM/yyyy}"
-        );
+        revistaSelecionada.Status = StatusRevista.Reservada;
+        Pausar("Revista reservada com sucesso.");
     }
 
-    public void RegistrarDevolucao()
+    private void VisualizarAbertos()
     {
-        ExibirCabecalho("Registrar Devolução");
-        VisualizarAbertos(false);
+        ExibirLista("Empréstimos Abertos", repositorioEmprestimo.SelecionarAbertos());
+    }
 
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite o ID do empréstimo que deseja concluir: ");
-        string idSelecionado = Console.ReadLine() ?? string.Empty;
+    private void VisualizarFechados()
+    {
+        ExibirLista("Empréstimos Fechados", repositorioEmprestimo.SelecionarFechados());
+    }
 
-        bool conseguiuRegistrar = repositorioEmprestimo.RegistrarDevolucao(idSelecionado);
+    private void VisualizarTodos()
+    {
+        ExibirLista("Todos os Empréstimos", repositorioEmprestimo.SelecionarTodos().OfType<Emprestimo>().ToArray());
+    }
 
-        if (!conseguiuRegistrar)
+    private void ExibirLista(string titulo, Emprestimo[] emprestimos)
+    {
+        Console.Clear();
+        Console.WriteLine(titulo);
+        Console.WriteLine();
+
+        Console.WriteLine("{0,-8} | {1,-15} | {2,-20} | {3,-12} | {4,-12} | {5,-10}",
+            "ID", "Amigo", "Revista", "Empréstimo", "Devolução", "Status");
+
+        foreach (var emprestimo in emprestimos)
         {
-            ExibirMensagem("Não foi possível registrar a devolução.");
-            return;
-        }
-
-        ExibirMensagem("Devolução registrada com sucesso.");
-    }
-
-    public void VisualizarAbertos(bool deveExibirCabecalho)
-    {
-        if (deveExibirCabecalho)
-            ExibirCabecalho("Empréstimos Abertos");
-
-        ExibirTabela(repositorioEmprestimo.SelecionarAbertos());
-
-        if (deveExibirCabecalho)
-            Aguardar();
-    }
-
-    public void VisualizarFechados(bool deveExibirCabecalho)
-    {
-        if (deveExibirCabecalho)
-            ExibirCabecalho("Empréstimos Fechados");
-
-        ExibirTabela(repositorioEmprestimo.SelecionarFechados());
-
-        if (deveExibirCabecalho)
-            Aguardar();
-    }
-
-    public void VisualizarPorAmigo()
-    {
-        ExibirCabecalho("Empréstimos por Amigo");
-
-        Amigo? amigoSelecionado = SelecionarAmigo();
-
-        if (amigoSelecionado == null)
-        {
-            ExibirMensagem("Amigo não encontrado.");
-            return;
-        }
-
-        Console.WriteLine($"Amigo selecionado: {amigoSelecionado.Nome}");
-        Console.WriteLine("---------------------------------");
-
-        ExibirTabela(repositorioEmprestimo.SelecionarPorAmigo(amigoSelecionado.Id));
-        Aguardar();
-    }
-
-    private void ExibirTabela(Emprestimo?[] emprestimos)
-    {
-        Console.WriteLine(
-            "{0, -7} | {1, -15} | {2, -20} | {3, -10} | {4, -10} | {5, -12}",
-            "Id", "Amigo", "Revista", "Empréstimo", "Devolução", "Status"
-        );
-
-        for (int i = 0; i < emprestimos.Length; i++)
-        {
-            Emprestimo? e = emprestimos[i];
-
-            if (e == null)
-                continue;
-
-            if (e.Status == StatusEmprestimo.Atrasado)
+            if (emprestimo.Status == StatusEmprestimo.Atrasado)
                 Console.ForegroundColor = ConsoleColor.Red;
-            else if (e.Status == StatusEmprestimo.Concluido)
-                Console.ForegroundColor = ConsoleColor.Green;
-            else
-                Console.ResetColor();
 
-            Console.WriteLine(
-                "{0, -7} | {1, -15} | {2, -20} | {3, -10} | {4, -10} | {5, -12}",
-                e.Id,
-                e.Amigo.Nome,
-                e.Revista.Titulo,
-                e.DataEmprestimo.ToString("dd/MM/yyyy"),
-                e.DataDevolucao.ToString("dd/MM/yyyy"),
-                e.Status
-            );
+            Console.WriteLine("{0,-8} | {1,-15} | {2,-20} | {3,-12:dd/MM/yyyy} | {4,-12:dd/MM/yyyy} | {5,-10}",
+                emprestimo.Id,
+                emprestimo.Amigo.Nome,
+                emprestimo.Revista.Titulo,
+                emprestimo.DataEmprestimo,
+                emprestimo.DataDevolucao,
+                emprestimo.Status);
 
             Console.ResetColor();
         }
+
+        Pausar("Fim da listagem.");
     }
 
-    private Amigo? SelecionarAmigo()
+    private Amigo SelecionarAmigo()
     {
-        Console.WriteLine(
-            "{0, -7} | {1, -15} | {2, -20} | {3, -13}",
-            "Id", "Nome", "Responsável", "Telefone"
-        );
+        foreach (Amigo amigo in repositorioAmigo.SelecionarTodos().OfType<Amigo>())
+            Console.WriteLine($"{amigo.Id} | {amigo.Nome} | {amigo.Telefone}");
 
-        EntidadeBase?[] amigos = repositorioAmigo.SelecionarTodas();
-
-        for (int i = 0; i < amigos.Length; i++)
-        {
-            Amigo? amigo = amigos[i] as Amigo;
-
-            if (amigo == null)
-                continue;
-
-            Console.WriteLine(
-                "{0, -7} | {1, -15} | {2, -20} | {3, -13}",
-                amigo.Id, amigo.Nome, amigo.NomeResponsavel, amigo.Telefone
-            );
-        }
-
-        Console.WriteLine("---------------------------------");
         Console.Write("Digite o ID do amigo: ");
-        string idSelecionado = Console.ReadLine() ?? string.Empty;
+        string id = Console.ReadLine() ?? string.Empty;
 
-        return repositorioAmigo.SelecionarPorId(idSelecionado) as Amigo;
+        return (Amigo)repositorioAmigo.SelecionarPorId(id)!;
     }
 
-    private Revista? SelecionarRevistaDisponivel()
+    private Revista SelecionarRevistaDisponivel()
     {
-        Console.WriteLine(
-            "{0, -7} | {1, -25} | {2, -6} | {3, -10}",
-            "Id", "Título", "Edição", "Status"
-        );
+        foreach (Revista revista in repositorioRevista.SelecionarDisponiveis())
+            Console.WriteLine($"{revista.Id} | {revista.Titulo} | Edição {revista.NumeroEdicao}");
 
-        Revista?[] revistas = repositorioRevista.SelecionarDisponiveis();
+        Console.Write("Digite o ID da revista: ");
+        string id = Console.ReadLine() ?? string.Empty;
 
-        for (int i = 0; i < revistas.Length; i++)
-        {
-            Revista? revista = revistas[i];
-
-            if (revista == null)
-                continue;
-
-            Console.WriteLine(
-                "{0, -7} | {1, -25} | {2, -6} | {3, -10}",
-                revista.Id, revista.Titulo, revista.NumeroEdicao, revista.Status
-            );
-        }
-
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite o ID da revista disponível: ");
-        string idSelecionado = Console.ReadLine() ?? string.Empty;
-
-        Revista? revistaSelecionada = repositorioRevista.SelecionarPorId(idSelecionado);
-
-        if (revistaSelecionada == null)
-            return null;
-
-        if (revistaSelecionada.Status != StatusRevista.Disponivel)
-            return null;
-
-        return revistaSelecionada;
+        return (Revista)repositorioRevista.SelecionarPorId(id)!;
     }
 
-    private void ExibirCabecalho(string titulo)
+    private void Pausar(string mensagem)
     {
-        Console.Clear();
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("Gestão de Empréstimos");
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine(titulo);
-        Console.WriteLine("---------------------------------");
-    }
-
-    private void ExibirMensagem(string mensagem)
-    {
-        Console.WriteLine("---------------------------------");
+        Console.WriteLine();
         Console.WriteLine(mensagem);
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite ENTER para continuar...");
-        Console.ReadLine();
-    }
-
-    private void ExibirErros(string[] erros)
-    {
-        Console.WriteLine("---------------------------------");
-        Console.ForegroundColor = ConsoleColor.Red;
-
-        for (int i = 0; i < erros.Length; i++)
-            Console.WriteLine(erros[i]);
-
-        Console.ResetColor();
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite ENTER para continuar...");
-        Console.ReadLine();
-    }
-
-    private void Aguardar()
-    {
-        Console.WriteLine("---------------------------------");
-        Console.WriteLine("Digite ENTER para continuar...");
+        Console.WriteLine();
+        Console.WriteLine("Pressione ENTER para continuar...");
         Console.ReadLine();
     }
 }

@@ -1,6 +1,7 @@
-using ClubeDaLeitura.ConsoleApp.Dominio;
+using ClubeDaLeitura.ConsoleApp.Dominio.Base;
+using ClubeDaLeitura.ConsoleApp.Dominio.Enums;
 
-namespace ClubeDaLeitura.ConsoleApp.Dominio.Base;
+namespace ClubeDaLeitura.ConsoleApp.Dominio;
 
 public class Revista : EntidadeBase
 {
@@ -21,25 +22,21 @@ public class Revista : EntidadeBase
 
     public override string[] Validar()
     {
-        string erros = string.Empty;
+        List<string> erros = new();
 
-        if (string.IsNullOrWhiteSpace(Titulo))
-            erros += "O campo \"Título\" é obrigatório;";
-        else if (Titulo.Length < 2 || Titulo.Length > 100)
-            erros += "O campo \"Título\" deve conter entre 2 e 100 caracteres;";
+        if (string.IsNullOrWhiteSpace(Titulo) || Titulo.Length < 2 || Titulo.Length > 100)
+            erros.Add("O título deve ter entre 2 e 100 caracteres.");
 
         if (NumeroEdicao <= 0)
-            erros += "O campo \"Número da Edição\" deve ser maior que zero;";
+            erros.Add("O número da edição deve ser positivo.");
 
-        int anoAtual = DateTime.Now.Year;
-
-        if (AnoPublicacao < 1 || AnoPublicacao > anoAtual)
-            erros += "O campo \"Ano de Publicação\" deve conter uma data válida;";
+        if (AnoPublicacao < 1900 || AnoPublicacao > DateTime.Now.Year)
+            erros.Add("O ano de publicação deve ser válido.");
 
         if (Caixa == null)
-            erros += "O campo \"Caixa\" deve conter uma caixa válida;";
+            erros.Add("A caixa é obrigatória.");
 
-        return erros.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        return erros.ToArray();
     }
 
     public override void AtualizarRegistro(EntidadeBase entidadeAtualizada)

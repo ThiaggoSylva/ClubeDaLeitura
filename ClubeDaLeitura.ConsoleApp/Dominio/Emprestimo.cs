@@ -1,14 +1,15 @@
-using ClubeDaLeitura.ConsoleApp.Dominio;
+using ClubeDaLeitura.ConsoleApp.Dominio.Base;
+using ClubeDaLeitura.ConsoleApp.Dominio.Enums;
 
-namespace ClubeDaLeitura.ConsoleApp.Dominio.Base;
+namespace ClubeDaLeitura.ConsoleApp.Dominio;
 
 public class Emprestimo : EntidadeBase
 {
     public Amigo Amigo { get; set; }
     public Revista Revista { get; set; }
-    public DateTime DataEmprestimo { get; private set; }
-    public DateTime DataDevolucao { get; private set; }
-    public DateTime? DataDevolucaoRealizada { get; private set; }
+    public DateTime DataEmprestimo { get; set; }
+    public DateTime DataDevolucao { get; set; }
+    public DateTime? DataDevolucaoRealizada { get; set; }
 
     public StatusEmprestimo Status
     {
@@ -17,7 +18,7 @@ public class Emprestimo : EntidadeBase
             if (DataDevolucaoRealizada.HasValue)
                 return StatusEmprestimo.Concluido;
 
-            if (DateTime.Today > DataDevolucao.Date)
+            if (DateTime.Now.Date > DataDevolucao.Date)
                 return StatusEmprestimo.Atrasado;
 
             return StatusEmprestimo.Aberto;
@@ -28,36 +29,42 @@ public class Emprestimo : EntidadeBase
     {
         Amigo = amigo;
         Revista = revista;
-        DataEmprestimo = DateTime.Today;
+        DataEmprestimo = DateTime.Now.Date;
         DataDevolucao = DataEmprestimo.AddDays(revista.Caixa.DiasDeEmprestimo);
     }
 
     public void RegistrarDevolucao()
     {
-        DataDevolucaoRealizada = DateTime.Today;
-        Revista.Status = StatusRevista.Disponivel;
+        DataDevolucaoRealizada = DateTime.Now.Date;
+        Revista.Status = Dominio.Enums.StatusRevista.Disponivel;
+    }
+
+    public void ReservarRevista()
+    {
+        Revista.Status = Dominio.Enums.StatusRevista.Reservada;
     }
 
     public override string[] Validar()
     {
-        string erros = string.Empty;
+        List<string> erros = new();
 
         if (Amigo == null)
-            erros += "O campo \"Amigo\" é obrigatório;";
+            erros.Add("O amigo é obrigatório.");
 
         if (Revista == null)
-            erros += "O campo \"Revista\" é obrigatório;";
-        else if (Revista.Status != StatusRevista.Disponivel)
-            erros += "A revista selecionada não está disponível no momento;";
+            erros.Add("A revista é obrigatória.");
 
-        return erros.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        return erros.ToArray();
     }
 
     public override void AtualizarRegistro(EntidadeBase entidadeAtualizada)
     {
-        Emprestimo emprestimoAtualizado = (Emprestimo)entidadeAtualizada;
+        Emprestimo e = (Emprestimo)entidadeAtualizada;
 
-        Amigo = emprestimoAtualizado.Amigo;
-        Revista = emprestimoAtualizado.Revista;
+        Amigo = e.Amigo;
+        Revista = e.Revista;
+        DataEmprestimo = e.DataEmprestimo;
+        DataDevolucao = e.DataDevolucao;
+        DataDevolucaoRealizada = e.DataDevolucaoRealizada;
     }
 }

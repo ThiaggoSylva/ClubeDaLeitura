@@ -1,79 +1,46 @@
-using System;
 using ClubeDaLeitura.ConsoleApp.Dominio.Base;
+using ClubeDaLeitura.ConsoleApp.Infraestrutura.Interfaces;
 
-namespace ClubeDaLeitura.ConsoleApp.Infraestrutura;
+namespace ClubeDaLeitura.ConsoleApp.Infraestrutura.Base;
 
-public abstract class RepositorioBase
+public abstract class RepositorioBase : IRepositorio
 {
-    // protected = visível para classes que herdam essa classe
-    protected EntidadeBase?[] registros = new EntidadeBase[100];
+    protected List<EntidadeBase> registros = new();
 
     public void Cadastrar(EntidadeBase entidade)
     {
-        for (int i = 0; i < registros.Length; i++)
-        {
-            if (registros[i] == null)
-            {
-                registros[i] = entidade;
-                break;
-            }
-        }
+        registros.Add(entidade);
     }
 
-    public EntidadeBase?[] SelecionarTodas()
+    public bool Editar(string id, EntidadeBase entidadeAtualizada)
     {
-        return registros;
-    }
+        EntidadeBase? entidade = SelecionarPorId(id);
 
-    public bool Editar(string idSelecionado, EntidadeBase entidade)
-    {
-        EntidadeBase? entidadeSelecionada = SelecionarPorId(idSelecionado);
-
-        if (entidadeSelecionada == null)
+        if (entidade == null)
             return false;
 
-        entidadeSelecionada.AtualizarRegistro(entidade);
-
+        entidade.AtualizarRegistro(entidadeAtualizada);
         return true;
     }
 
-    public bool Excluir(string idSelecionado)
+    public bool Excluir(string id)
     {
-        for (int i = 0; i < registros.Length; i++)
-        {
-            EntidadeBase? c = registros[i];
+        EntidadeBase? entidade = SelecionarPorId(id);
 
-            if (c == null)
-                continue;
+        if (entidade == null)
+            return false;
 
-            if (c.Id == idSelecionado)
-            {
-                registros[i] = null;
-                return true;
-            }
-        }
-
-        return false;
+        registros.Remove(entidade);
+        return true;
     }
 
-    public EntidadeBase? SelecionarPorId(string idSelecionado)
+    public EntidadeBase[] SelecionarTodos()
     {
-        EntidadeBase? entidadeSelecionada = null;
+        return registros.ToArray();
+    }
 
-        for (int i = 0; i < registros.Length; i++)
-        {
-            EntidadeBase? c = registros[i];
-
-            if (c == null)
-                continue;
-
-            if (c.Id == idSelecionado)
-            {
-                entidadeSelecionada = c;
-                break;
-            }
-        }
-
-        return entidadeSelecionada;
+    public EntidadeBase? SelecionarPorId(string id)
+    {
+        return registros.FirstOrDefault(x => x.Id == id);
     }
 }

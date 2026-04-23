@@ -1,4 +1,4 @@
-namespace ClubeDaLeitura.ConsoleApp.Dominio.Base;
+namespace ClubeDaLeitura.ConsoleApp.Dominio.Enums;
 
 public enum StatusRevista
 {

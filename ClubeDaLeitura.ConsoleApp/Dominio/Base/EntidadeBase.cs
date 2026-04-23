@@ -1,20 +1,14 @@
-using System.Security.Cryptography;
-
 namespace ClubeDaLeitura.ConsoleApp.Dominio.Base;
 
 public abstract class EntidadeBase
 {
-    public string Id { get; set; } = string.Empty;
+    public string Id { get; set; }
 
-    public EntidadeBase()
+    protected EntidadeBase()
     {
-        Id = Convert
-                .ToHexString(RandomNumberGenerator.GetBytes(20))
-                .ToLower()
-                .Substring(0, 7);
+        Id = Guid.NewGuid().ToString("N")[..6].ToUpper();
     }
 
-   
     public abstract string[] Validar();
     public abstract void AtualizarRegistro(EntidadeBase entidadeAtualizada);
 }

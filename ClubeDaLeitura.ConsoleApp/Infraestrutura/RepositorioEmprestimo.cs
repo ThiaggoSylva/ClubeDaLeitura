@@ -1,135 +1,49 @@
-using ClubeDaLeitura.ConsoleApp.Dominio.Base;
+using ClubeDaLeitura.ConsoleApp.Dominio;
+using ClubeDaLeitura.ConsoleApp.Infraestrutura.Base;
 
 namespace ClubeDaLeitura.ConsoleApp.Infraestrutura;
 
 public class RepositorioEmprestimo : RepositorioBase
 {
-    public bool RegistrarEmprestimo(Emprestimo emprestimo)
+    public bool AmigoPossuiEmprestimoAtivo(Amigo amigo)
     {
-        if (AmigoPossuiEmprestimoAtivo(emprestimo.Amigo.Id))
-            return false;
-
-        if (emprestimo.Revista.Status != StatusRevista.Disponivel)
-            return false;
-
-        emprestimo.Revista.Status = StatusRevista.Emprestada;
-        Cadastrar(emprestimo);
-
-        return true;
+        return registros
+            .OfType<Emprestimo>()
+            .Any(x => x.Amigo.Id == amigo.Id && x.DataDevolucaoRealizada == null);
     }
 
-    public bool RegistrarDevolucao(string idSelecionado)
+    public bool ExisteEmprestimoParaAmigo(string amigoId)
     {
-        Emprestimo? emprestimo = SelecionarPorId(idSelecionado) as Emprestimo;
-
-        if (emprestimo == null)
-            return false;
-
-        if (emprestimo.Status == StatusEmprestimo.Concluido)
-            return false;
-
-        emprestimo.RegistrarDevolucao();
-
-        return true;
+        return registros
+            .OfType<Emprestimo>()
+            .Any(x => x.Amigo.Id == amigoId);
     }
 
-    public bool AmigoPossuiEmprestimoAtivo(string idAmigo)
+    public bool ExisteEmprestimoAbertoParaRevista(string revistaId)
     {
-        for (int i = 0; i < registros.Length; i++)
-        {
-            Emprestimo? emprestimo = registros[i] as Emprestimo;
-
-            if (emprestimo == null)
-                continue;
-
-            if (emprestimo.Amigo.Id == idAmigo &&
-                emprestimo.Status != StatusEmprestimo.Concluido)
-                return true;
-        }
-
-        return false;
+        return registros
+            .OfType<Emprestimo>()
+            .Any(x => x.Revista.Id == revistaId && x.DataDevolucaoRealizada == null);
     }
 
-    public bool AmigoTemEmprestimosVinculados(string idAmigo)
+    public Emprestimo[] SelecionarAbertos()
     {
-        for (int i = 0; i < registros.Length; i++)
-        {
-            Emprestimo? emprestimo = registros[i] as Emprestimo;
-
-            if (emprestimo == null)
-                continue;
-
-            if (emprestimo.Amigo.Id == idAmigo)
-                return true;
-        }
-
-        return false;
+        return registros.OfType<Emprestimo>()
+            .Where(x => x.DataDevolucaoRealizada == null)
+            .ToArray();
     }
 
-    public Emprestimo?[] SelecionarAbertos()
+    public Emprestimo[] SelecionarFechados()
     {
-        Emprestimo?[] emprestimos = new Emprestimo[100];
-        int indice = 0;
-
-        for (int i = 0; i < registros.Length; i++)
-        {
-            Emprestimo? emprestimo = registros[i] as Emprestimo;
-
-            if (emprestimo == null)
-                continue;
-
-            if (emprestimo.Status == StatusEmprestimo.Aberto ||
-                emprestimo.Status == StatusEmprestimo.Atrasado)
-            {
-                emprestimos[indice] = emprestimo;
-                indice++;
-            }
-        }
-
-        return emprestimos;
+        return registros.OfType<Emprestimo>()
+            .Where(x => x.DataDevolucaoRealizada != null)
+            .ToArray();
     }
 
-    public Emprestimo?[] SelecionarFechados()
+    public Emprestimo[] SelecionarPorAmigo(string amigoId)
     {
-        Emprestimo?[] emprestimos = new Emprestimo[100];
-        int indice = 0;
-
-        for (int i = 0; i < registros.Length; i++)
-        {
-            Emprestimo? emprestimo = registros[i] as Emprestimo;
-
-            if (emprestimo == null)
-                continue;
-
-            if (emprestimo.Status == StatusEmprestimo.Concluido)
-            {
-                emprestimos[indice] = emprestimo;
-                indice++;
-            }
-        }
-
-        return emprestimos;
-    }
-
-    public Emprestimo?[] SelecionarPorAmigo(string idAmigo)
-    {
-        Emprestimo?[] emprestimos = new Emprestimo[100];
-        int indice = 0;
-
-        for (int i = 0; i < registros.Length; i++)
-        {
-            Emprestimo? emprestimo = registros[i] as Emprestimo;
-
-            if (emprestimo == null)
-                continue;
-
-            if (emprestimo.Amigo.Id == idAmigo)
-            {
-                emprestimos[indice] = emprestimo;
-                indice++;
-            }
-        }
-
-        return emprestimos;
+        return registros.OfType<Emprestimo>()
+            .Where(x => x.Amigo.Id == amigoId)
+            .ToArray();
     }
 }

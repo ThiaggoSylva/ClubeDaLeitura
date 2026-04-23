@@ -1,12 +1,13 @@
+using System.Text.RegularExpressions;
 using ClubeDaLeitura.ConsoleApp.Dominio.Base;
 
 namespace ClubeDaLeitura.ConsoleApp.Dominio;
 
 public class Amigo : EntidadeBase
 {
-    public string Nome { get; set; } = string.Empty;
-    public string NomeResponsavel { get; set; } = string.Empty;
-    public string Telefone { get; set; } = string.Empty;
+    public string Nome { get; set; }
+    public string NomeResponsavel { get; set; }
+    public string Telefone { get; set; }
 
     public Amigo(string nome, string nomeResponsavel, string telefone)
     {
@@ -17,47 +18,19 @@ public class Amigo : EntidadeBase
 
     public override string[] Validar()
     {
-        string erros = string.Empty;
+        List<string> erros = new();
 
-        if (string.IsNullOrWhiteSpace(Nome))
-            erros += "O campo \"Nome\" deve ser preenchido;";
+        if (string.IsNullOrWhiteSpace(Nome) || Nome.Length < 3 || Nome.Length > 100)
+            erros.Add("O nome deve ter entre 3 e 100 caracteres.");
 
-        else if (Nome.Length < 2 || Nome.Length > 100)
-            erros += "O campo \"Nome\" deve conter entre 2 e 100 caracteres;";
+        if (string.IsNullOrWhiteSpace(NomeResponsavel) || NomeResponsavel.Length < 3 || NomeResponsavel.Length > 100)
+            erros.Add("O nome do responsável deve ter entre 3 e 100 caracteres.");
 
-        if (string.IsNullOrWhiteSpace(NomeResponsavel))
-            erros += "O campo \"Nome do Responsável\" deve ser preenchido;";
+        string somenteNumeros = Regex.Replace(Telefone ?? string.Empty, @"\D", "");
+        if (somenteNumeros.Length < 10 || somenteNumeros.Length > 11)
+            erros.Add("O telefone deve ter entre 10 e 11 dígitos.");
 
-        else if (NomeResponsavel.Length < 2 || NomeResponsavel.Length > 100)
-            erros += "O campo \"Nome do Responsável\" deve conter entre 2 e 100 caracteres;";
-
-        int contadorDigitos = 0;
-        bool contemLetraOuSimbolo = false;
-
-        string telefoneEncurtado = Telefone.Replace(" ", "").Replace("-", "");
-
-        for (int i = 0; i < telefoneEncurtado.Length; i++)
-        {
-            char caractereAtual = telefoneEncurtado[i];
-
-            if (char.IsDigit(caractereAtual))
-            {
-                contadorDigitos++;
-            }
-            else
-            {
-                contemLetraOuSimbolo = true;
-                break;
-            }
-        }
-
-        if (contadorDigitos < 10 || contadorDigitos > 11)
-            erros += "O campo \"Telefone\" deve conter entre 10 e 11 dígitos;";
-
-        if (contemLetraOuSimbolo)
-            erros += "O campo \"Telefone\" deve conter apenas dígitos;";
-
-        return erros.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        return erros.ToArray();
     }
 
     public override void AtualizarRegistro(EntidadeBase entidadeAtualizada)

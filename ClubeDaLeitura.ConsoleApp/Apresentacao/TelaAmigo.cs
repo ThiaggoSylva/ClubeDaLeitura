@@ -3,88 +3,147 @@ using ClubeDaLeitura.ConsoleApp.Dominio.Base;
 using ClubeDaLeitura.ConsoleApp.Infraestrutura;
 
 namespace ClubeDaLeitura.ConsoleApp.Apresentacao;
+
 public class TelaAmigo : TelaBase
 {
-    private RepositorioAmigo repositorioAmigo;
-    private RepositorioEmprestimo repositorioEmprestimo;
+    private readonly RepositorioAmigo repositorioAmigo;
+    private readonly RepositorioEmprestimo repositorioEmprestimo;
+
+    public override string NomeEntidade => "Amigos";
 
     public TelaAmigo(RepositorioAmigo repositorioAmigo, RepositorioEmprestimo repositorioEmprestimo)
-        : base("Amigo", repositorioAmigo)
+        : base(repositorioAmigo)
     {
         this.repositorioAmigo = repositorioAmigo;
         this.repositorioEmprestimo = repositorioEmprestimo;
     }
 
-    public new void Excluir()
+    public override string ObterOpcaoMenu()
+    {
+        Console.Clear();
+        Console.WriteLine("---------------------------------");
+        Console.WriteLine("Gestão de Amigos");
+        Console.WriteLine("---------------------------------");
+        Console.WriteLine("1 - Cadastrar");
+        Console.WriteLine("2 - Editar");
+        Console.WriteLine("3 - Excluir");
+        Console.WriteLine("4 - Visualizar todos");
+        Console.WriteLine("5 - Visualizar empréstimos de um amigo");
+        Console.WriteLine("S - Voltar");
+        Console.WriteLine("---------------------------------");
+        Console.Write("> ");
+
+        return Console.ReadLine()?.ToUpper() ?? "S";
+    }
+
+    protected override EntidadeBase ObterDados()
+    {
+        Console.Write("Nome: ");
+        string nome = Console.ReadLine() ?? string.Empty;
+
+        Console.Write("Nome do responsável: ");
+        string responsavel = Console.ReadLine() ?? string.Empty;
+
+        Console.Write("Telefone: ");
+        string telefone = Console.ReadLine() ?? string.Empty;
+
+        return new Amigo(nome, responsavel, telefone);
+    }
+
+    public override void Cadastrar()
+    {
+        ExibirCabecalho("Cadastro de Amigo");
+        Amigo amigo = (Amigo)ObterDados();
+
+        if (repositorioAmigo.ExisteAmigoDuplicado(amigo.Nome, amigo.Telefone))
+        {
+            Mensagem("Já existe um amigo com esse nome e telefone.");
+            return;
+        }
+
+        SalvarCadastro(amigo);
+    }
+
+    public override void Editar()
+    {
+        ExibirCabecalho("Edição de Amigo");
+        VisualizarTodos(false);
+
+        Console.Write("Digite o ID: ");
+        string id = Console.ReadLine() ?? string.Empty;
+
+        Amigo amigo = (Amigo)ObterDados();
+
+        if (repositorioAmigo.ExisteAmigoDuplicado(amigo.Nome, amigo.Telefone, id))
+        {
+            Mensagem("Já existe um amigo com esse nome e telefone.");
+            return;
+        }
+
+        SalvarEdicao(id, amigo);
+    }
+
+    public override void Excluir()
     {
         ExibirCabecalho("Exclusão de Amigo");
         VisualizarTodos(false);
 
-        Console.WriteLine("---------------------------------");
-        Console.Write("Digite o ID do amigo que deseja excluir: ");
-        string idSelecionado = Console.ReadLine() ?? string.Empty;
+        Console.Write("Digite o ID: ");
+        string id = Console.ReadLine() ?? string.Empty;
 
-        if (repositorioEmprestimo.AmigoTemEmprestimosVinculados(idSelecionado))
+        if (repositorioEmprestimo.ExisteEmprestimoParaAmigo(id))
         {
-            ExibirMensagem("Não é permitido excluir um amigo com empréstimos vinculados.");
+            Mensagem("Não é permitido excluir amigo com empréstimos vinculados.");
             return;
         }
 
-        bool conseguiuExcluir = repositorioAmigo.Excluir(idSelecionado);
-
-        if (!conseguiuExcluir)
-        {
-            ExibirMensagem("Não foi possível encontrar o registro requisitado.");
-            return;
-        }
-
-        ExibirMensagem($"O registro \"{idSelecionado}\" foi excluído com sucesso.");
+        base.Excluir();
     }
 
-    public override void VisualizarTodos(bool deveExibirCabecalho)
+    public override void VisualizarTodos(bool exibirCabecalho)
     {
-        if (deveExibirCabecalho)
+        if (exibirCabecalho)
             ExibirCabecalho("Visualização de Amigos");
 
-        Console.WriteLine(
-            "{0, -7} | {1, -15} | {2, -20} | {3, -13}",
-            "Id", "Nome", "Responsável", "Telefone"
-        );
+        Console.WriteLine("{0,-8} | {1,-20} | {2,-20} | {3,-14}",
+            "ID", "Nome", "Responsável", "Telefone");
 
-        EntidadeBase?[] amigos = repositorioAmigo.SelecionarTodas();
+        foreach (Amigo amigo in repositorioAmigo.SelecionarTodos().OfType<Amigo>())
+            Console.WriteLine("{0,-8} | {1,-20} | {2,-20} | {3,-14}",
+                amigo.Id, amigo.Nome, amigo.NomeResponsavel, amigo.Telefone);
 
-        for (int i = 0; i < amigos.Length; i++)
-        {
-            Amigo? a = (Amigo?)amigos[i];
-
-            if (a == null)
-                continue;
-
-            Console.WriteLine(
-                "{0, -7} | {1, -15} | {2, -20} | {3, -13}",
-                a.Id, a.Nome, a.NomeResponsavel, a.Telefone
-            );
-        }
-
-        if (deveExibirCabecalho)
-        {
-            Console.WriteLine("---------------------------------");
-            Console.WriteLine("Digite ENTER para continuar...");
-            Console.ReadLine();
-        }
+        if (exibirCabecalho)
+            Mensagem("Fim da listagem.");
     }
 
-    protected override EntidadeBase ObterDadosCadastrais()
+    public void VisualizarEmprestimosDoAmigo()
     {
-        Console.Write("Digite o nome: ");
-        string nome = Console.ReadLine() ?? string.Empty;
+        ExibirCabecalho("Empréstimos por Amigo");
+        VisualizarTodos(false);
 
-        Console.Write("Digite o nome do responsável: ");
-        string nomeResponsavel = Console.ReadLine() ?? string.Empty;
+        Console.Write("Digite o ID do amigo: ");
+        string id = Console.ReadLine() ?? string.Empty;
 
-        Console.Write("Digite o telefone: ");
-        string telefone = Console.ReadLine() ?? string.Empty;
+        var emprestimos = repositorioEmprestimo.SelecionarPorAmigo(id);
 
-        return new Amigo(nome, nomeResponsavel, telefone);
+        Console.WriteLine();
+        Console.WriteLine("{0,-20} | {1,-12} | {2,-12} | {3,-10}",
+            "Revista", "Empréstimo", "Devolução", "Status");
+
+        foreach (var emprestimo in emprestimos)
+        {
+            if (emprestimo.Status == Dominio.Enums.StatusEmprestimo.Atrasado)
+                Console.ForegroundColor = ConsoleColor.Red;
+
+            Console.WriteLine("{0,-20} | {1,-12:dd/MM/yyyy} | {2,-12:dd/MM/yyyy} | {3,-10}",
+                emprestimo.Revista.Titulo,
+                emprestimo.DataEmprestimo,
+                emprestimo.DataDevolucao,
+                emprestimo.Status);
+
+            Console.ResetColor();
+        }
+
+        Mensagem("Fim da consulta.");
     }
 }

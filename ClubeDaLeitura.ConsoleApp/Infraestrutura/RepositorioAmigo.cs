@@ -1,24 +1,17 @@
 using ClubeDaLeitura.ConsoleApp.Dominio;
-using ClubeDaLeitura.ConsoleApp.Dominio.Base;
+using ClubeDaLeitura.ConsoleApp.Infraestrutura.Base;
 
 namespace ClubeDaLeitura.ConsoleApp.Infraestrutura;
 
 public class RepositorioAmigo : RepositorioBase
 {
-    public bool ExisteAmigoComMesmoNomeTelefone(string nome, string telefone)
+    public bool ExisteAmigoDuplicado(string nome, string telefone, string? idIgnorado = null)
     {
-        for (int i = 0; i < registros.Length; i++)
-        {
-            Amigo? amigo = registros[i] as Amigo;
-
-            if (amigo == null)
-                continue;
-
-            if (amigo.Nome.Equals(nome, StringComparison.OrdinalIgnoreCase) &&
-                amigo.Telefone == telefone)
-                return true;
-        }
-
-        return false;
+        return registros
+            .OfType<Amigo>()
+            .Any(x =>
+                x.Nome.Equals(nome, StringComparison.OrdinalIgnoreCase) &&
+                x.Telefone == telefone &&
+                x.Id != idIgnorado);
     }
 }

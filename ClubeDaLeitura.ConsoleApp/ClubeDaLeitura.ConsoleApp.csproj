@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Apresentacao\Interfaces\" />
+    <Folder Include="Infraestrutura\Interfaces\" />
+  </ItemGroup>
+
 </Project>
