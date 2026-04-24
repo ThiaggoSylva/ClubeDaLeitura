@@ -103,17 +103,25 @@ public class TelaRevista : TelaBase
             Mensagem("Fim da listagem.");
     }
 
-    private Caixa SelecionarCaixa()
+   private Caixa SelecionarCaixa()
+{
+    Console.WriteLine();
+    Console.WriteLine("Caixas disponíveis:");
+
+    foreach (Caixa caixa in repositorioCaixa.SelecionarTodos().OfType<Caixa>())
+        Console.WriteLine($"{caixa.Id} | {caixa.Etiqueta}");
+
+    while (true)
     {
-        Console.WriteLine();
-        Console.WriteLine("Caixas disponíveis:");
-
-        foreach (Caixa caixa in repositorioCaixa.SelecionarTodos().OfType<Caixa>())
-            Console.WriteLine($"{caixa.Id} | {caixa.Etiqueta}");
-
         Console.Write("Digite o ID da caixa: ");
-        string id = Console.ReadLine() ?? string.Empty;
+        string id = Console.ReadLine() ?? "";
 
-        return (Caixa)repositorioCaixa.SelecionarPorId(id)!;
+        Caixa? caixa = repositorioCaixa.SelecionarPorId(id) as Caixa;
+
+        if (caixa != null)
+            return caixa;
+
+        Console.WriteLine("ID inválido. Tente novamente.");
     }
+}
 }

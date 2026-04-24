@@ -8,11 +8,13 @@ public class TelaPrincipal
     private readonly RepositorioRevista repositorioRevista = new();
     private readonly RepositorioAmigo repositorioAmigo = new();
     private readonly RepositorioEmprestimo repositorioEmprestimo = new();
+    private readonly RepositorioReserva repositorioReserva = new();
 
     private readonly TelaCaixa telaCaixa;
     private readonly TelaRevista telaRevista;
     private readonly TelaAmigo telaAmigo;
     private readonly TelaEmprestimo telaEmprestimo;
+    private readonly TelaReserva telaReserva;
 
     public TelaPrincipal()
     {
@@ -20,6 +22,7 @@ public class TelaPrincipal
         telaRevista = new TelaRevista(repositorioRevista, repositorioCaixa, repositorioEmprestimo);
         telaAmigo = new TelaAmigo(repositorioAmigo, repositorioEmprestimo);
         telaEmprestimo = new TelaEmprestimo(repositorioEmprestimo, repositorioAmigo, repositorioRevista);
+        telaReserva = new TelaReserva(repositorioReserva,repositorioAmigo,repositorioRevista,repositorioEmprestimo);
 
         Seed();
     }
@@ -36,6 +39,7 @@ public class TelaPrincipal
             Console.WriteLine("2 - Revistas");
             Console.WriteLine("3 - Amigos");
             Console.WriteLine("4 - Empréstimos");
+            Console.WriteLine("5 - Reservas");
             Console.WriteLine("S - Sair");
             Console.WriteLine("---------------------------------");
             Console.Write("> ");
@@ -52,6 +56,8 @@ public class TelaPrincipal
                 ExecutarTelaAmigo();
             else if (opcao == "4")
                 telaEmprestimo.ApresentarMenu();
+            else if (opcao == "5")
+                telaReserva.ApresentarMenu();
         }
     }
 

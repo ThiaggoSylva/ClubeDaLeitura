@@ -39,11 +39,6 @@ public class Emprestimo : EntidadeBase
         Revista.Status = Dominio.Enums.StatusRevista.Disponivel;
     }
 
-    public void ReservarRevista()
-    {
-        Revista.Status = Dominio.Enums.StatusRevista.Reservada;
-    }
-
     public override string[] Validar()
     {
         List<string> erros = new();
