@@ -111,9 +111,9 @@ public abstract class TelaBase : ITelaCrud
 
     protected void Mensagem(string texto)
     {
-        Console.WriteLine();
+        Console.WriteLine("---------------------------------");
         Console.WriteLine(texto);
-        Console.WriteLine();
+        Console.WriteLine("---------------------------------");
         Console.WriteLine("Pressione ENTER para continuar...");
         Console.ReadLine();
     }
