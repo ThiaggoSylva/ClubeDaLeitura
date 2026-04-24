@@ -10,6 +10,7 @@
   <ItemGroup>
     <Folder Include="Apresentacao\Interfaces\" />
     <Folder Include="Infraestrutura\Interfaces\" />
+    <Folder Include="Util\" />
   </ItemGroup>
 
 </Project>

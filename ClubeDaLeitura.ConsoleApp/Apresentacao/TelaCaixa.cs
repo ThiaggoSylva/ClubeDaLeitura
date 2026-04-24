@@ -1,7 +1,7 @@
 using ClubeDaLeitura.ConsoleApp.Dominio;
 using ClubeDaLeitura.ConsoleApp.Dominio.Base;
 using ClubeDaLeitura.ConsoleApp.Infraestrutura;
-
+using ClubeDaLeitura.ConsoleApp.Util;
 namespace ClubeDaLeitura.ConsoleApp.Apresentacao;
 
 public class TelaCaixa : TelaBase
@@ -87,16 +87,26 @@ public class TelaCaixa : TelaBase
     }
 
     public override void VisualizarTodos(bool exibirCabecalho)
+{
+    if (exibirCabecalho)
+        ExibirCabecalho("Visualização de Caixas");
+
+    Console.WriteLine("{0,-8} | {1,-20} | {2,-12} | {3,-5}", "ID", "Etiqueta", "Cor", "Dias");
+
+    foreach (Caixa caixa in repositorioCaixa.SelecionarTodos().OfType<Caixa>())
     {
-        if (exibirCabecalho)
-            ExibirCabecalho("Visualização de Caixas");
+        Console.Write("{0,-8} | {1,-20} | ",
+            caixa.Id,
+            caixa.Etiqueta);
 
-        Console.WriteLine("{0,-8} | {1,-20} | {2,-12} | {3,-5}", "ID", "Etiqueta", "Cor", "Dias");
+        Console.ForegroundColor = ConsoleColorHelper.ObterCor(caixa.Cor);
+        Console.Write("{0,-12}", caixa.Cor);
+        Console.ResetColor();
 
-        foreach (Caixa caixa in repositorioCaixa.SelecionarTodos().OfType<Caixa>())
-            Console.WriteLine("{0,-8} | {1,-20} | {2,-12} | {3,-5}", caixa.Id, caixa.Etiqueta, caixa.Cor, caixa.DiasDeEmprestimo);
-
-        if (exibirCabecalho)
-            Mensagem("Fim da listagem.");
+        Console.WriteLine(" | {0,-5}", caixa.DiasDeEmprestimo);
     }
+
+    if (exibirCabecalho)
+        Mensagem("Fim da listagem.");
+}
 }

@@ -101,11 +101,11 @@ public class TelaEmprestimo
 
         foreach (var emprestimo in repositorioEmprestimo.SelecionarAbertos())
         {
-            if (emprestimo.Status == StatusEmprestimo.Atrasado)
-                Console.ForegroundColor = ConsoleColor.Red;
+        Console.Write($"{emprestimo.Id} | {emprestimo.Amigo.Nome} | {emprestimo.Revista.Titulo} | {emprestimo.DataDevolucao:dd/MM/yyyy} | ");
 
-            Console.WriteLine($"{emprestimo.Id} | {emprestimo.Amigo.Nome} | {emprestimo.Revista.Titulo} | {emprestimo.DataDevolucao:dd/MM/yyyy} | {emprestimo.Status}");
-            Console.ResetColor();
+        Console.ForegroundColor = ObterCorStatus(emprestimo.Status);
+        Console.WriteLine(emprestimo.Status);
+        Console.ResetColor();
         }
 
         Console.Write("Digite o ID do empréstimo: ");
@@ -166,33 +166,32 @@ public class TelaEmprestimo
     }
 
     private void ExibirLista(string titulo, Emprestimo[] emprestimos)
+{
+    Console.Clear();
+    Console.WriteLine(titulo);
+    Console.WriteLine();
+
+    Console.WriteLine("{0,-8} | {1,-15} | {2,-20} | {3,-12} | {4,-12} | {5,-10}",
+        "ID", "Amigo", "Revista", "Empréstimo", "Devolução", "Status");
+
+    foreach (var emprestimo in emprestimos)
     {
-        Console.Clear();
-        Console.WriteLine(titulo);
+        Console.Write("{0,-8} | {1,-15} | {2,-20} | {3,-12:dd/MM/yyyy} | {4,-12:dd/MM/yyyy} | ",
+            emprestimo.Id,
+            emprestimo.Amigo.Nome,
+            emprestimo.Revista.Titulo,
+            emprestimo.DataEmprestimo,
+            emprestimo.DataDevolucao);
+
+        Console.ForegroundColor = ObterCorStatus(emprestimo.Status);
+        Console.Write("{0,-10}", emprestimo.Status);
+        Console.ResetColor();
+
         Console.WriteLine();
-
-        Console.WriteLine("{0,-8} | {1,-15} | {2,-20} | {3,-12} | {4,-12} | {5,-10}",
-            "ID", "Amigo", "Revista", "Empréstimo", "Devolução", "Status");
-
-        foreach (var emprestimo in emprestimos)
-        {
-            if (emprestimo.Status == StatusEmprestimo.Atrasado)
-                Console.ForegroundColor = ConsoleColor.Red;
-
-            Console.WriteLine("{0,-8} | {1,-15} | {2,-20} | {3,-12:dd/MM/yyyy} | {4,-12:dd/MM/yyyy} | {5,-10}",
-                emprestimo.Id,
-                emprestimo.Amigo.Nome,
-                emprestimo.Revista.Titulo,
-                emprestimo.DataEmprestimo,
-                emprestimo.DataDevolucao,
-                emprestimo.Status);
-
-            Console.ResetColor();
-        }
-
-        Pausar("Fim da listagem.");
     }
 
+    Pausar("Fim da listagem.");
+}
     private Amigo? SelecionarAmigo()
 {
     Console.WriteLine("Amigos cadastrados:");
@@ -244,4 +243,15 @@ public class TelaEmprestimo
         Console.WriteLine("Pressione ENTER para continuar...");
         Console.ReadLine();
     }
+
+    private ConsoleColor ObterCorStatus(StatusEmprestimo status)
+{
+    return status switch
+    {
+        StatusEmprestimo.Concluido => ConsoleColor.Green,
+        StatusEmprestimo.Aberto => ConsoleColor.Yellow,
+        StatusEmprestimo.Atrasado => ConsoleColor.Red,
+        _ => ConsoleColor.White
+    };
+}
 }
