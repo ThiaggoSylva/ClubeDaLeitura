@@ -111,9 +111,9 @@ public abstract class TelaBase : ITelaCrud
 
     protected void Mensagem(string texto)
     {
-        Console.WriteLine("---------------------------------");
+        Console.WriteLine();
         Console.WriteLine(texto);
-        Console.WriteLine("---------------------------------");
+        Console.WriteLine();
         Console.WriteLine("Pressione ENTER para continuar...");
         Console.ReadLine();
     }
@@ -144,6 +144,12 @@ public abstract class TelaBase : ITelaCrud
 
             Console.WriteLine("Valor inválido.");
         }
+    }
+
+    protected void LinhaTabela(params int[] largurasColunas)
+    {
+            int total = largurasColunas.Sum() + (largurasColunas.Length - 1) * 3;
+            Console.WriteLine(new string('-', total));
     }
 
     protected abstract EntidadeBase ObterDados();

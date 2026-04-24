@@ -211,15 +211,18 @@ public class TelaReserva
         Console.WriteLine("{0,-8} | {1,-20} | {2,-20} | {3,-12} | {4,-12} | {5,-12}",
             "ID", "Amigo", "Revista", "Reserva", "Expiração", "Status");
 
+        LinhaTabela(8, 20, 20, 12, 12, 12);
+
         foreach (Reserva reserva in repositorioReserva.SelecionarAtivas())
         {
             ExibirLinhaReserva(reserva);
         }
 
+        LinhaTabela(8, 20, 20, 12, 12, 12);
+
         if (pausar)
             Pausar("Fim da listagem.");
-    }
-
+    }    
     private void VisualizarHistoricoReservas()
     {
         repositorioReserva.AtualizarReservasExpiradas();
@@ -229,16 +232,19 @@ public class TelaReserva
         Console.WriteLine();
 
         Console.WriteLine("{0,-8} | {1,-20} | {2,-20} | {3,-12} | {4,-12} | {5,-22}",
-            "ID", "Amigo", "Revista", "Reserva", "Expiração", "Status");
+        "ID", "Amigo", "Revista", "Reserva", "Expiração", "Status");
+
+        LinhaTabela(8, 20, 20, 12, 12, 22);
 
         foreach (Reserva reserva in repositorioReserva.SelecionarTodasReservas())
         {
             ExibirLinhaReserva(reserva);
         }
 
-        Pausar("Fim do histórico.");
-    }
+        LinhaTabela(8, 20, 20, 12, 12, 22);
 
+        Pausar("Fim do histórico.");
+}
     private void AtualizarReservasExpiradas()
     {
         repositorioReserva.AtualizarReservasExpiradas();
@@ -333,5 +339,11 @@ public class TelaReserva
         Console.WriteLine();
         Console.WriteLine("Pressione ENTER para continuar...");
         Console.ReadLine();
+    }
+
+    private void LinhaTabela(params int[] largurasColunas)
+    {
+        int total = largurasColunas.Sum() + (largurasColunas.Length - 1) * 3;
+        Console.WriteLine(new string('-', total));
     }
 }

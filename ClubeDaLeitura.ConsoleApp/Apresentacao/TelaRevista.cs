@@ -86,22 +86,31 @@ public class TelaRevista : TelaBase
     }
 
     public override void VisualizarTodos(bool exibirCabecalho)
+{
+    if (exibirCabecalho)
+        ExibirCabecalho("Visualização de Revistas");
+
+    Console.WriteLine("{0,-8} | {1,-20} | {2,-6} | {3,-6} | {4,-15} | {5,-12}",
+        "ID", "Título", "Edição", "Ano", "Caixa", "Status");
+
+    LinhaTabela(8, 20, 6, 6, 15, 12);
+
+    foreach (Revista revista in repositorioRevista.SelecionarTodos().OfType<Revista>())
     {
-        if (exibirCabecalho)
-            ExibirCabecalho("Visualização de Revistas");
-
         Console.WriteLine("{0,-8} | {1,-20} | {2,-6} | {3,-6} | {4,-15} | {5,-12}",
-            "ID", "Título", "Edição", "Ano", "Caixa", "Status");
-
-        foreach (Revista revista in repositorioRevista.SelecionarTodos().OfType<Revista>())
-        {
-            Console.WriteLine("{0,-8} | {1,-20} | {2,-6} | {3,-6} | {4,-15} | {5,-12}",
-                revista.Id, revista.Titulo, revista.NumeroEdicao, revista.AnoPublicacao, revista.Caixa.Etiqueta, revista.Status);
-        }
-
-        if (exibirCabecalho)
-            Mensagem("Fim da listagem.");
+            revista.Id,
+            revista.Titulo,
+            revista.NumeroEdicao,
+            revista.AnoPublicacao,
+            revista.Caixa.Etiqueta,
+            revista.Status);
     }
+
+    LinhaTabela(8, 20, 6, 6, 15, 12);
+
+    if (exibirCabecalho)
+        Mensagem("Fim da listagem.");
+}
 
    private Caixa SelecionarCaixa()
 {

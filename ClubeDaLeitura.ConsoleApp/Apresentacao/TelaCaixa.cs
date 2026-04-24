@@ -86,18 +86,17 @@ public class TelaCaixa : TelaBase
         base.Excluir();
     }
 
-    public override void VisualizarTodos(bool exibirCabecalho)
+  public override void VisualizarTodos(bool exibirCabecalho)
 {
     if (exibirCabecalho)
         ExibirCabecalho("Visualização de Caixas");
 
     Console.WriteLine("{0,-8} | {1,-20} | {2,-12} | {3,-5}", "ID", "Etiqueta", "Cor", "Dias");
+    LinhaTabela(8, 20, 12, 5);
 
     foreach (Caixa caixa in repositorioCaixa.SelecionarTodos().OfType<Caixa>())
     {
-        Console.Write("{0,-8} | {1,-20} | ",
-            caixa.Id,
-            caixa.Etiqueta);
+        Console.Write("{0,-8} | {1,-20} | ", caixa.Id, caixa.Etiqueta);
 
         Console.ForegroundColor = ConsoleColorHelper.ObterCor(caixa.Cor);
         Console.Write("{0,-12}", caixa.Cor);
@@ -105,6 +104,8 @@ public class TelaCaixa : TelaBase
 
         Console.WriteLine(" | {0,-5}", caixa.DiasDeEmprestimo);
     }
+
+    LinhaTabela(8, 20, 12, 5);
 
     if (exibirCabecalho)
         Mensagem("Fim da listagem.");

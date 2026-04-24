@@ -101,20 +101,29 @@ public class TelaAmigo : TelaBase
     }
 
     public override void VisualizarTodos(bool exibirCabecalho)
+{
+    if (exibirCabecalho)
+        ExibirCabecalho("Visualização de Amigos");
+
+    Console.WriteLine("{0,-8} | {1,-20} | {2,-20} | {3,-14}",
+        "ID", "Nome", "Responsável", "Telefone");
+
+    LinhaTabela(8, 20, 20, 14);
+
+    foreach (Amigo amigo in repositorioAmigo.SelecionarTodos().OfType<Amigo>())
     {
-        if (exibirCabecalho)
-            ExibirCabecalho("Visualização de Amigos");
-
         Console.WriteLine("{0,-8} | {1,-20} | {2,-20} | {3,-14}",
-            "ID", "Nome", "Responsável", "Telefone");
-
-        foreach (Amigo amigo in repositorioAmigo.SelecionarTodos().OfType<Amigo>())
-            Console.WriteLine("{0,-8} | {1,-20} | {2,-20} | {3,-14}",
-                amigo.Id, amigo.Nome, amigo.NomeResponsavel, amigo.Telefone);
-
-        if (exibirCabecalho)
-            Mensagem("Fim da listagem.");
+            amigo.Id,
+            amigo.Nome,
+            amigo.NomeResponsavel,
+            amigo.Telefone);
     }
+
+    LinhaTabela(8, 20, 20, 14);
+
+    if (exibirCabecalho)
+        Mensagem("Fim da listagem.");
+}
 
     public void VisualizarEmprestimosDoAmigo()
     {

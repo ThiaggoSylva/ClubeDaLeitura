@@ -114,5 +114,19 @@ public class TelaPrincipal
 
         var amigo = new Dominio.Amigo("Joãozinho", "Dona Cleide", "49982224353");
         repositorioAmigo.Cadastrar(amigo);
+
+        var emprestimo = new Dominio.Emprestimo(amigo, revista);
+        revista.Status = Dominio.Enums.StatusRevista.Emprestada;
+        repositorioEmprestimo.Cadastrar(emprestimo);
+
+        var amigo2 = new Dominio.Amigo("Maria", "Dona Ana", "11999999999");
+        repositorioAmigo.Cadastrar(amigo2);
+
+        var revista2 = new Dominio.Revista("Batman", 10, 2005, caixa);
+        repositorioRevista.Cadastrar(revista2);
+
+        var emprestimo2 = new Dominio.Emprestimo(amigo2, revista2);
+        revista2.Status = Dominio.Enums.StatusRevista.Emprestada;
+        repositorioEmprestimo.Cadastrar(emprestimo2);
     }
 }
