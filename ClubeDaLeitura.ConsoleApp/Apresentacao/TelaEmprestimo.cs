@@ -58,33 +58,40 @@ public class TelaEmprestimo
     }
 
     private void RegistrarEmprestimo()
+{
+    Console.Clear();
+    Console.WriteLine("Registrar Empréstimo");
+    Console.WriteLine();
+
+    Amigo? amigo = SelecionarAmigo();
+
+    if (amigo == null)
+        return;
+
+    if (repositorioEmprestimo.AmigoPossuiEmprestimoAtivo(amigo))
     {
-        Console.Clear();
-        Console.WriteLine("Registrar Empréstimo");
-        Console.WriteLine();
-
-        Amigo amigo = SelecionarAmigo();
-
-        if (repositorioEmprestimo.AmigoPossuiEmprestimoAtivo(amigo))
-        {
-            Pausar("Esse amigo já possui empréstimo ativo.");
-            return;
-        }
-
-        Revista revista = SelecionarRevistaDisponivel();
-
-        if (revista.Status != StatusRevista.Disponivel)
-        {
-            Pausar("A revista selecionada não está disponível.");
-            return;
-        }
-
-        Emprestimo emprestimo = new Emprestimo(amigo, revista);
-        revista.Status = StatusRevista.Emprestada;
-        repositorioEmprestimo.Cadastrar(emprestimo);
-
-        Pausar($"Empréstimo registrado. Devolução prevista: {emprestimo.DataDevolucao:dd/MM/yyyy}");
+        Pausar("Esse amigo já possui empréstimo ativo.");
+        return;
     }
+
+    Revista? revista = SelecionarRevistaDisponivel();
+
+    if (revista == null)
+        return;
+
+    if (revista.Status != StatusRevista.Disponivel)
+    {
+        Pausar("A revista selecionada não está disponível.");
+        return;
+    }
+
+    Emprestimo emprestimo = new Emprestimo(amigo, revista);
+    revista.Status = StatusRevista.Emprestada;
+
+    repositorioEmprestimo.Cadastrar(emprestimo);
+
+    Pausar($"Empréstimo registrado. Devolução prevista: {emprestimo.DataDevolucao:dd/MM/yyyy}");
+}
 
     private void RegistrarDevolucao()
     {
@@ -186,27 +193,48 @@ public class TelaEmprestimo
         Pausar("Fim da listagem.");
     }
 
-    private Amigo SelecionarAmigo()
+    private Amigo? SelecionarAmigo()
+{
+    Console.WriteLine("Amigos cadastrados:");
+
+    foreach (Amigo amigo in repositorioAmigo.SelecionarTodos().OfType<Amigo>())
+        Console.WriteLine($"{amigo.Id} | {amigo.Nome} | {amigo.Telefone}");
+
+    Console.WriteLine();
+    Console.Write("Digite o ID do amigo: ");
+    string id = Console.ReadLine() ?? string.Empty;
+
+    Amigo? amigoSelecionado = repositorioAmigo.SelecionarPorId(id) as Amigo;
+
+    if (amigoSelecionado == null)
     {
-        foreach (Amigo amigo in repositorioAmigo.SelecionarTodos().OfType<Amigo>())
-            Console.WriteLine($"{amigo.Id} | {amigo.Nome} | {amigo.Telefone}");
-
-        Console.Write("Digite o ID do amigo: ");
-        string id = Console.ReadLine() ?? string.Empty;
-
-        return (Amigo)repositorioAmigo.SelecionarPorId(id)!;
+        Pausar("Amigo não encontrado.");
+        return null;
     }
 
-    private Revista SelecionarRevistaDisponivel()
+    return amigoSelecionado;
+}
+   private Revista? SelecionarRevistaDisponivel()
+{
+    Console.WriteLine("Revistas disponíveis:");
+
+    foreach (Revista revista in repositorioRevista.SelecionarDisponiveis())
+        Console.WriteLine($"{revista.Id} | {revista.Titulo} | Edição {revista.NumeroEdicao}");
+
+    Console.WriteLine();
+    Console.Write("Digite o ID da revista: ");
+    string id = Console.ReadLine() ?? string.Empty;
+
+    Revista? revistaSelecionada = repositorioRevista.SelecionarPorId(id) as Revista;
+
+    if (revistaSelecionada == null)
     {
-        foreach (Revista revista in repositorioRevista.SelecionarDisponiveis())
-            Console.WriteLine($"{revista.Id} | {revista.Titulo} | Edição {revista.NumeroEdicao}");
-
-        Console.Write("Digite o ID da revista: ");
-        string id = Console.ReadLine() ?? string.Empty;
-
-        return (Revista)repositorioRevista.SelecionarPorId(id)!;
+        Pausar("Revista não encontrada.");
+        return null;
     }
+
+    return revistaSelecionada;
+}
 
     private void Pausar(string mensagem)
     {
